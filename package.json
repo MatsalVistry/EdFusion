@@ -1,0 +1,24 @@
+{
+  "name": "edfusion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatsalVistry/EdFusion.git"
+  },
+  "author": "Vatsal Mistry",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MatsalVistry/EdFusion/issues"
+  },
+  "homepage": "https://github.com/MatsalVistry/EdFusion#readme",
+  "dependencies": {
+    "electron": "^9.1.1",
+    "jquery": "^3.5.1",
+    "mongodb": "^3.5.9"
+  }
+}
