@@ -1,7 +1,7 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
-const { protocol } = require('electron');
+const { protocol, Notification } = require('electron');
 const { pipeline } = require('stream');
 const { verify } = require('crypto');
 
@@ -13,7 +13,7 @@ const MongoClient = require('mongodb').MongoClient;
 var teacherID = null;
 var questions = new Set();
 var classCode = null;
-var uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
+const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
 
 app.on('ready', function () {
@@ -49,7 +49,6 @@ app.on('ready', function () {
 ipc.on('login_data', async function (event, value) {
     event.preventDefault();
     await verifyTeacher(value).then((data) => {
-        console.log(data);
         if (data === true) {
             mainWindow.loadURL(url.format({
                 pathname: '/public/html/dashboard.html',
@@ -133,6 +132,7 @@ ipc.on('startClass', async function (event, value) {
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
+                    console.log("change")
                     let questionsArr = null;
                     if (change.fullDocument)
                         questionsArr = change.fullDocument.questions;
@@ -140,14 +140,17 @@ ipc.on('startClass', async function (event, value) {
                         questionsArr = change.updateDescription.updatedFields.questions;
                     if (questionsArr && questionsArr.length > 0) {
                         var question = questionsArr[questionsArr.length - 1].question;
-                        console.log(questions)
                         if (!questions.has(question)) {
                             questions.add(question)
+                            console.log("QUESTION: " + JSON.stringify(question))
                             mainWindow.webContents.send('newQuestion', question);
+                            new Notification({
+                                title: "New Question!", 
+                                body: question
+                            }).show()
                         }
                     }
                 }
-
             });
         }).catch(function (err) {
             console.log("ERROR" + err)
@@ -165,7 +168,6 @@ async function verifyTeacher(value) {
             const query = { email: value[0], password: value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
-                console.log(items.length);
                 if (items.length > 0)
                     data = true;
                 else
