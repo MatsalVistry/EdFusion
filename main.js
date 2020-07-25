@@ -16,6 +16,7 @@ var classCode = null;
 const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
 var teacherID = null;
+var inSession = null;
 var confusionChartvsTime = [];
 
 app.on('ready', function () {
@@ -119,8 +120,9 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('endClass', async function (event, value) {
     event.preventDefault();
+    inSession=false;
     updateClassroom();
-    updateTeacher();
+    updateTeacher();    
 });
 
 
@@ -275,6 +277,10 @@ ipc.on('startClass', async function (event, value) {
     })).then(() => {
         MongoClient.connect(uri).then(function (mongo) {
             console.log('Connected...');
+            inSession = true;
+            confusionChartvsTime=[];
+            questions = new Set();
+            addStatus = true;
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
             var changeStream = collection.watch();
@@ -309,38 +315,44 @@ ipc.on('startClass', async function (event, value) {
 
 async function confusionChartBuilder()
 {
-    var timeout = 10000;
+    var timeout = 3000;
     setTimeout(async ()=>
     {
         await MongoClient.connect(uri).then(async function (mongo) 
         {
-            const collection = mongo.db("edfusion").collection("classrooms");
-            const query = { code:classCode };
-            await collection.find(query).toArray().then(items => 
+            if(inSession)
             {
-                var confusionAverage = 0;
-                var totalStudents = 0;
-                items[0].students.forEach((student)=>
+                const collection = mongo.db("edfusion").collection("classrooms");
+                const query = { code:classCode };
+                await collection.find(query).toArray().then(items => 
                 {
-                    confusionAverage+=student.confusion;
-                    totalStudents++;
-                });
-                confusionAverage/=totalStudents;
-                var today = new Date();
+                    var confusionAverage = 0;
+                    var totalStudents = 0;
+                    items[0].students.forEach((student)=>
+                    {
+                        confusionAverage+=student.confusion;
+                        totalStudents++;
+                    });
+                    confusionAverage/=totalStudents;
+                    var today = new Date();
 
-                var obj = 
-                {
-                    "x": (today.getHours()%12)+":"+today.getMinutes(),
-                    "y": (confusionAverage) || 0
-                }
-                confusionChartvsTime.push(obj);
-                
-            }).catch(err => console.error(`Failed to find documents: ${err}`))
+                    var obj = 
+                    {
+                        "x": (today.getHours()%12)+":"+today.getMinutes(),
+                        "y": (confusionAverage) || 0
+                    }
+                    confusionChartvsTime.push(obj);
+                    
+                }).catch(err => console.error(`Failed to find documents: ${err}`))
+            }
         });
-
-        console.log(confusionChartvsTime);
-        mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
-        confusionChartBuilder();
+        
+        if(inSession)
+        {
+            console.log(confusionChartvsTime);
+            mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
+            confusionChartBuilder();
+        }
     },timeout)
 }
 
