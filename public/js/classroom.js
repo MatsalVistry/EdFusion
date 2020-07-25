@@ -1,4 +1,5 @@
 const ipc = require('electron').ipcRenderer;
+var Chart = require('chart.js');
 window.$ = window.jQuery = require('jquery');
 
 $(document).ready(() => {
@@ -43,3 +44,29 @@ const pushQuestion = (question) => {
     qDiv.appendChild(qMuteButton)
     questions.append(qDiv)
 }
+
+const loadChart = (data, ctx) => {
+    var data = {
+        labels: data.map(point => point.x),
+        datasets: [{
+          label: "Average Confusion Rating",
+          data: data.map(point => point.y)
+        }]
+    };
+
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            title: {
+                display: true,
+                text: 'Live Confusion Graph'
+            }
+        }
+    });
+}
+
+ipc.on('updatedSessionChart', (event, data) => {
+    const confusionCTX = $('#session_confusion')
+    loadChart(data, confusionCTX) 
+})

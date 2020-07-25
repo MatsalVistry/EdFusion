@@ -58,7 +58,7 @@ ipc.on('login_data', async function (event, value) {
                 slashes: true,
             })).then(() => {
                 getChartData().then(data => {
-                    mainWindow.webContents.send('chartData',data);
+                    mainWindow.webContents.send('chartData', data);
                 })
             });
         }
@@ -126,7 +126,7 @@ ipc.on('endClass', async function (event, value) {
 
 ipc.on('mutePerson', async function (event, question) {
     event.preventDefault();
-    await mutePerson(question).then(async () => {});
+    await mutePerson(question).then(async () => { });
 });
 async function mutePerson(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
@@ -149,15 +149,13 @@ async function muteHelper(collection, query, question) {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
         var studentID = null;
-        items2[0].questions.forEach((q)=>
-        {
-            if(q.question==question)
+        items2[0].questions.forEach((q) => {
+            if (q.question == question)
                 studentID = q.student_id;
         })
 
-        items2[0].students.forEach((student)=>
-        {
-            if(student.student_id==studentID)
+        items2[0].students.forEach((student) => {
+            if (student.student_id == studentID)
                 student.muted = !student.muted;
         })
         return items2[0];
@@ -307,41 +305,45 @@ ipc.on('startClass', async function (event, value) {
 });
 
 
-async function confusionChartBuilder()
-{
+async function confusionChartBuilder() {
     var timeout = 10000;
-    setTimeout(async ()=>
-    {
-        await MongoClient.connect(uri).then(async function (mongo) 
-        {
+    
+    let today = new Date();
+    confusionChartvsTime.push({
+        "x": (today.getHours() % 12) + ":" + today.getMinutes() + ":" + today.getSeconds(),
+        "y": 0
+    })
+
+    mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
+
+    setTimeout(async () => {
+        await MongoClient.connect(uri).then(async function (mongo) {
             const collection = mongo.db("edfusion").collection("classrooms");
-            const query = { code:classCode };
-            await collection.find(query).toArray().then(items => 
-            {
+            const query = { code: classCode };
+            await collection.find(query).toArray().then(items => {
                 var confusionAverage = 0;
                 var totalStudents = 0;
-                items[0].students.forEach((student)=>
-                {
-                    confusionAverage+=student.confusion;
+                items[0].students.forEach((student) => {
+                    confusionAverage += student.confusion;
                     totalStudents++;
                 });
-                confusionAverage/=totalStudents;
+                confusionAverage /= totalStudents;
                 var today = new Date();
 
-                var obj = 
+                var obj =
                 {
-                    "x": (today.getHours()%12)+":"+today.getMinutes(),
+                    "x": (today.getHours() % 12) + ":" + today.getMinutes() + ":" + today.getSeconds(),
                     "y": (confusionAverage) || 0
                 }
                 confusionChartvsTime.push(obj);
-                
+
             }).catch(err => console.error(`Failed to find documents: ${err}`))
         });
 
         console.log(confusionChartvsTime);
         mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
         confusionChartBuilder();
-    },timeout)
+    }, timeout)
 }
 
 async function verifyTeacher(value) {
@@ -393,7 +395,7 @@ async function getRoomCode() {
                             "students": [],
                             "questions": [],
                             "ratings": [],
-                            "reviews":[]
+                            "reviews": []
                         }
                     );
                 const collection2 = mongo.db("edfusion").collection("teachers");
