@@ -19,7 +19,7 @@ app.on('ready',function(){
     });
 
     mainWindow.loadURL(url.format({
-        pathname: '/index.html',
+        pathname: '/public/html/login.html',//'/index.html',
         protocol: 'file:',
         slashes: true,
     }));
@@ -57,12 +57,16 @@ ipc.on('clicked', async function (event, value)
     var data = await getData(uri);
     mainWindow.webContents.send('reply',data);
 
-    
 
     //either work
     // mainWindow.webContents.send('reply', stuffDb);
     // event.sender.send('reply', 'value recieved is '+value);
 });
+
+
+ipc.on('login_data', async (event, data) => {
+    console.log(data)
+})
 
 async function getData(uri)
 {
