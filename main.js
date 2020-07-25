@@ -21,6 +21,7 @@ var inSession = null;
 var ratings = null;
 var ratingsSession = null;
 var confusionChartvsTime = [];
+var reviewSet = new Set();
 
 
 app.on('ready', async function () {
@@ -155,6 +156,7 @@ ipc.on('getRoomCode', async function (event, value) {
 ipc.on('endClass', async function (event, value) {
     event.preventDefault();
     inSession = false;
+    reviewSet = new Set();
     await updateClassroom();
     await updateTeacher();
 
@@ -186,7 +188,14 @@ const reviewsBuilder = async () =>
                 const query = { code: classCode };
                 await collection.find(query).toArray().then(items => 
                 {
-                    reviews =  items[0].reviews;
+                    items[0].reviews.forEach((review)=>
+                    {
+                        if(!reviewSet.has(review))
+                        {
+                            reviews.push(review);
+                            reviewSet.add(review);
+                        }
+                    })
                 }).catch(err => console.error(`Failed to find documents: ${err}`))
             }
         });
