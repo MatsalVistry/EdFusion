@@ -173,6 +173,19 @@ ipc.on('endClass', async function (event, value) {
     });
 });
 
+const getReviews = async()=>
+{
+    return await MongoClient.connect(uri).then(async function (mongo) 
+    {
+        const collection = mongo.db("edfusion").collection("classrooms");
+        const query = { code: classCode };
+        return await collection.find(query).toArray().then(items => {
+            return items[0].reviews
+        }).catch(err => console.error(`Failed to find documents: ${err}`))
+        
+    });
+}
+
 const ratingsBuilder = async () => {
     var timeout = 5000;
     setTimeout(async () => {
