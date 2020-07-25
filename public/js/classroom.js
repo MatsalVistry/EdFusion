@@ -2,6 +2,10 @@ const ipc = require('electron').ipcRenderer;
 window.$ = window.jQuery = require('jquery');
 
 $(document).ready(() => {
+    $("#end-class").click((e) => {
+        e.preventDefault()
+        ipc.send('endClass')
+    })
 })
 
 ipc.on('newQuestion', (event, question) => {
