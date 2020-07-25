@@ -15,7 +15,6 @@ var questions = new Set();
 var classCode = null;
 var uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
-var changeStream = null;
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -24,8 +23,8 @@ app.on('ready', function () {
         }
     });
 
-    mainWindow.loadURL(url.format({ 
-        pathname: '/public/html/login.html',//'/index.html',
+    mainWindow.loadURL(url.format({
+        pathname: '/public/html/login.html',
         protocol: 'file:',
         slashes: true,
     }));
@@ -67,78 +66,42 @@ ipc.on('getRoomCode', async function (event, value) {
 
 
 
-ipc.on('deleteQuestion', async function (event, question) 
-{
+ipc.on('deleteQuestion', async function (event, question) {
     // changeStream.close();
-    addStatus=false;
-    console.log("In the IPC DELETE");
+    addStatus = false;
     questions.delete(question);
     event.preventDefault();
-    await deleteQuestion(question).then(async() => 
-    {
-        // changeStream.on('change',function(change)
-        //     {
-        //         if(addStatus)
-        //         {
-        //             // console.log(change);
-        //             var questionsArr = null;
-        //             // if(change.fullDocument)
-        //                 questionsArr = change.fullDocument.questions;
-        //             // else
-        //             //     questionsArr = change.updateDescription.updatedFields.questions;
-        //             if(questionsArr  && questionsArr.length>0)
-        //             {
-        //                 // console.log(questionsArr);
-        //                 var question = questionsArr[questionsArr.length-1].question;
-        //                 console.log("ASDASD"+question);
-        //                 console.log(questions)
-        //                 if(!questions.has(question))
-        //                     mainWindow.webContents.send('newQuestion', question);
-        //             }
-        //         }
-                
-        //     });
-        addStatus=true;
+    await deleteQuestion(question).then(async () => {
+        addStatus = true;
     });
 });
 
 
-async function deleteQuestion(question)
-{
-    console.log("BEGIN DELETE");
-
-    return await MongoClient.connect(uri).then(async function (mongo) 
-    {
+async function deleteQuestion(question) {
+    return await MongoClient.connect(uri).then(async function (mongo) {
         console.log('Connected...');
+        console.log(addStatus)
 
         const collection = mongo.db("edfusion").collection("classrooms");
 
-        const query = {code:classCode};
-        var doc = await getUpdatedDocument(collection,query, question);
-        // console.log(doc);
+        const query = { code: classCode };
+        var doc = await getUpdatedDocument(collection, query, question);
+
         console.log(JSON.stringify(doc));
-        var data = null;
-        console.log("BEGIN REPLACE");
 
         await collection.findOneAndReplace(
             query,
             doc
-
-         ).catch((err)=>console.log(err))
-         console.log("FINISHED REPLACE");
-
-
+        ).catch((err) => console.log(err))
     }).catch(function (err) { })
 }
 
-async function getUpdatedDocument(collection,query, question)
-{
+async function getUpdatedDocument(collection, query, question) {
     console.log("TRYING TO UPDATE");
 
-    return await collection.find(query).toArray().then(items => 
-    {
+    return await collection.find(query).toArray().then(items => {
         var items2 = items;
-        console.log(JSON.stringify( items2));
+        console.log(JSON.stringify(items2));
         var questionsArr = items2[0].questions;
         console.log(questionsArr);
         questionsArr = questionsArr.filter(q => q.question != question);
@@ -158,46 +121,40 @@ ipc.on('startClass', async function (event, value) {
         pathname: '/public/html/classroom.html',
         protocol: 'file:',
         slashes: true,
-    })).then(()=>
-    {
-        console.log("CHANGED SCREEN")
-        MongoClient.connect(uri).then(function (mongo) 
-        {
+    })).then(() => {
+        MongoClient.connect(uri).then(function (mongo) {
             console.log('Connected...');
 
             const collection = mongo.db("edfusion").collection("classrooms");
             var changeStream = collection.watch();
 
-            changeStream.on('change',function(change)
-            {
-                if(addStatus)
-                {
-                    // console.log(change);
+            changeStream.on('change', function (change) {
+                if (addStatus) {
                     var questionsArr = null;
                     // if(change.fullDocument)
-                        questionsArr = change.fullDocument.questions;
+                    questionsArr = change.fullDocument.questions;
                     // else
                     //     questionsArr = change.updateDescription.updatedFields.questions;
-                    if(questionsArr  && questionsArr.length>0)
-                    {
+                    if (questionsArr && questionsArr.length > 0) {
                         // console.log(questionsArr);
-                        var question = questionsArr[questionsArr.length-1].question;
-                        console.log("ASDASD"+question);
+                        var question = questionsArr[questionsArr.length - 1].question;
                         console.log(questions)
-                        if(!questions.has(question))
+                        if (!questions.has(question)) {
+                            questions.add(question)
                             mainWindow.webContents.send('newQuestion', question);
+                        }
                     }
                 }
-                
+
             });
 
         }).catch(function (err) {
-            console.log("ERROR"+ err)
+            console.log("ERROR" + err)
         })
 
     });
 
-   
+
 });
 
 async function verifyTeacher(value) {
@@ -237,7 +194,6 @@ async function getRoomCode() {
                 items.forEach((item) => {
                     codes.add(item.code)
                 })
-                // codes.forEach((code)=>console.log(code));
                 var num = Math.floor((Math.random() * 999999) + 1);
                 while (codes.has(num) === true)
                     num = Math.floor((Math.random() * 999999) + 1);

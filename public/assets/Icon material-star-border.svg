@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="47.252" height="44.89" viewBox="0 0 47.252 44.89">
+  <defs>
+    <linearGradient id="linear-gradient" x1="5.472" y1="0.594" x2="3.074" y2="0.582" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#8039b4"/>
+      <stop offset="1" stop-color="#c31d6c"/>
+    </linearGradient>
+  </defs>
+  <path id="Icon_material-star-border" data-name="Icon material-star-border" d="M50.252,20.105,33.265,18.641,26.626,3,19.987,18.664,3,20.105,15.9,31.281,12.025,47.89l14.6-8.813,14.6,8.813L37.376,31.281ZM26.626,34.659l-8.883,5.363L20.105,29.91l-7.844-6.8,10.348-.9,4.016-9.521,4.04,9.545,10.348.9-7.844,6.8,2.363,10.112Z" transform="translate(-3 -3)" fill="url(#linear-gradient)"/>
+</svg>
