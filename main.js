@@ -10,7 +10,7 @@ const { app, BrowserWindow } = electron;
 let mainWindow;
 const ipc = electron.ipcMain;
 const MongoClient = require('mongodb').MongoClient;
-
+var teacherID = null;
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -87,6 +87,22 @@ ipc.on('login_data', async function (event, value) {
     // event.sender.send('reply', 'value recieved is '+value);
 });
 
+ipc.on('getRoomCode', async function (event, value) {
+    event.preventDefault();
+    const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
+    await getRoomCode(uri).then((data) => 
+    {
+        console.log(data);
+    });
+
+    // mainWindow.webContents.send('reply',success);
+
+
+    //either work
+    // mainWindow.webContents.send('reply', stuffDb);
+    // event.sender.send('reply', 'value recieved is '+value);
+});
+
 
 async function verifyTeacher(uri, value) {
     return await MongoClient.connect(uri)
@@ -103,7 +119,46 @@ async function verifyTeacher(uri, value) {
                     data = true;
                 else
                     data = false;
+                teacherID = items[0]._id;
                 return data;
+            }).catch(err => console.error(`Failed to find documents: ${err}`))
+
+
+        }).catch(function (err) { })
+
+}
+async function getRoomCode(uri) 
+{
+    return await MongoClient.connect(uri)
+        .then(async function (mongo) {
+            console.log('Connected...');
+
+            const collection = mongo.db("edfusion").collection("classrooms");
+
+            const query = {};
+            return await collection.find(query).toArray().then(async (items) => 
+            {
+                var codes = new Set();
+                items.forEach((item)=>{
+                    codes.add(item.code)
+                })
+                // codes.forEach((code)=>console.log(code));
+                var num = Math.floor((Math.random() * 999999) + 1);
+                while(codes.has(num)===true)
+                    num = Math.floor((Math.random() * 999999) + 1);
+
+                await collection.insertOne
+                (
+                    {
+                        "code": num,
+                        "teacherID": teacherID,
+                        "students":[],
+                        "questions":[],
+                        "ratings": []
+                    }
+                );
+    
+                return num;
             }).catch(err => console.error(`Failed to find documents: ${err}`))
 
 
