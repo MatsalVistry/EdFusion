@@ -2,6 +2,8 @@ const ipc = require('electron').ipcRenderer;
 var Chart = require('chart.js');
 window.$ = window.jQuery = require('jquery');
 
+let chart;
+
 $(document).ready(() => {
     $("#end-class").click((e) => {
         e.preventDefault()
@@ -54,7 +56,7 @@ const loadChart = (data, ctx) => {
         }]
     };
 
-    var myChart = new Chart(ctx, {
+    chart = new Chart(ctx, {
         type: 'line',
         data: data,
         options: {
@@ -66,7 +68,23 @@ const loadChart = (data, ctx) => {
     });
 }
 
+const updateChart = (data) => {
+    let latestX = data[data.length-1].x
+    let latestY = data[data.length-1].y
+
+    chart.data.labels.push(latestX);
+    chart.data.datasets.forEach((dataset) => {
+        dataset.data.push(latestY);
+    });
+    chart.update();
+}
+
 ipc.on('updatedSessionChart', (event, data) => {
     const confusionCTX = $('#session_confusion')
-    loadChart(data, confusionCTX) 
+
+    if(data.length > 1) {
+        updateChart(data)
+    } else {
+        loadChart(data, confusionCTX) 
+    }
 })
