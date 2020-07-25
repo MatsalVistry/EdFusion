@@ -14,7 +14,6 @@ var teacherID = null;
 var questions = new Set();
 var classCode = null;
 const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
-
 var addStatus = true;
 var teacherID = null;
 var inSession = null;
@@ -22,6 +21,7 @@ var ratings = null;
 var ratingsSession = null;
 var confusionChartvsTime = [];
 var reviewSet = new Set();
+var alreadySessionMade = false;
 
 
 app.on('ready', async function () {
@@ -139,6 +139,29 @@ async function getChartData() {
 
 ipc.on('getRoomCode', async function (event, value) {
     event.preventDefault();
+
+    if(alreadySessionMade)
+    {
+        await MongoClient.connect(uri).then(async function (mongo) 
+        {
+            const collection = mongo.db("edfusion").collection("classrooms");
+            const query = { code: classCode };
+            const collection2 = mongo.db("edfusion").collection("teachers");
+            const query2 = { code: classCode };
+
+
+            ratingsSession = false;
+            var classID = await collection.find(query).toArray().then(items => { return items[0]._id; }).catch((err) => console.log(err));
+            var doc = await finalTeacherUpdate(collection2, query2, classID);
+
+            await collection2.findOneAndReplace
+            (
+                query2,
+                doc
+            ).then(() => {collection.deleteOne(query).catch((err) => console.log(err))})
+        }).catch((err) => console.log(err))
+    }
+
     await getRoomCode().then((roomCode) => {
         console.log(roomCode);
         if (roomCode) {
@@ -308,7 +331,7 @@ async function updateTeacher() {
             items[0].ratings.forEach((rate) => averageRatings += rate);
             averageRatings /= items[0].ratings.length;
             averageConfusion /= totalStudents;
-            var arr = [averageConfusion, averageRatings, totalStudents];
+            var arr = [averageConfusion||0, averageRatings||0, totalStudents];
 
 
             const collection2 = mongo.db("edfusion").collection("teachers");
@@ -385,8 +408,10 @@ ipc.on('startClass', async function (event, value) {
         protocol: 'file:',
         slashes: true,
     })).then(() => {
-        MongoClient.connect(uri).then(function (mongo) {
 
+
+        MongoClient.connect(uri).then(function (mongo) {
+            alreadySessionMade=true;
             console.log('Connected...');
             inSession = true;
             addStatus = true;
@@ -409,7 +434,7 @@ ipc.on('startClass', async function (event, value) {
                     console.log(change)
                     const query = { _id: change.documentKey._id }
                     collection.findOne(query).then((res) => {
-                        if (res.code == classCode) {
+                        if (res && (res.code == classCode)) {
                             let questionsArr = null;
                             if (change.fullDocument)
                                 questionsArr = change.fullDocument.questions;
