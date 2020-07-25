@@ -20,8 +20,13 @@ const pushQuestion = (question) => {
 
     let qButton = document.createElement('button')
     qButton.innerHTML = "Ya Boi"
+
     qButton.onclick = () => {
         ipc.send('deleteQuestion', question)
+
+        qText.remove()
+        qButton.remove()
+        qDiv.remove()
     }
 
     qDiv.appendChild(qText)
