@@ -55,51 +55,50 @@ ipc.on('login_data', async function (event, value) {
                 pathname: '/public/html/dashboard.html',
                 protocol: 'file:',
                 slashes: true,
-            })).then(()=>
-            {
-                mainWindow.webContents.send('chartData', getChartData());
+            })).then(() => {
+                getChartData().then(data => {
+                    mainWindow.webContents.send('chartData',data);
+                })
             });
         }
     });
 });
-async function getChartData()
-{
-    event.preventDefault();
-    
-    const collection = mongo.db("edfusion").collection("teachers");
-    const query = { _id: teacherID };
-    return await collection.find(query).toArray().then(items => 
-    {
-        var items2 = items;
-        console.log(JSON.stringify(items2));
-        var confusionChart = [];
-        var ratingsChart = [];
-        var attendanceChart = [];
-        var counter = 0;
-        items2[0].statistics.forEach((indClass)=>
-        {
-            counter++;
-            var confusionPoint = 
-            {
-                "x": counter,
-                "y": indClass.averageConfusion
-            }
-            confusionChart.push(confusionPoint);
-            var ratingPoint = 
-            {
-                "x": counter,
-                "y": indClass.averageRating
-            }
-            ratingsChart.push(ratingPoint);
-            var attendancePoint = 
-            {
-                "x": counter,
-                "y": indClass.studentsAttended
-            }
-            attendanceChart.push(attendancePoint);
-        });
-        return [confusionChart,ratingsChart,attendanceChart];
-    }).catch(err => console.error(`Failed to find documents: ${err}`))
+
+async function getChartData() {
+    return await MongoClient.connect(uri).then(async function (mongo) {
+        const collection = mongo.db("edfusion").collection("teachers");
+        const query = { _id: teacherID };
+        return await collection.find(query).toArray().then(items => {
+            var items2 = items;
+            console.log(JSON.stringify(items2));
+            var confusionChart = [];
+            var ratingsChart = [];
+            var attendanceChart = [];
+            var counter = 0;
+            items2[0].statistics.forEach((indClass) => {
+                counter++;
+                var confusionPoint =
+                {
+                    "x": counter,
+                    "y": indClass.averageConfusion || 0
+                }
+                confusionChart.push(confusionPoint);
+                var ratingPoint =
+                {
+                    "x": counter,
+                    "y": indClass.averageRating || 0
+                }
+                ratingsChart.push(ratingPoint);
+                var attendancePoint =
+                {
+                    "x": counter,
+                    "y": indClass.studentsAttended || 0
+                }
+                attendanceChart.push(attendancePoint);
+            });
+            return [confusionChart, ratingsChart, attendanceChart];
+        }).catch(err => console.error(`Failed to find documents: ${err}`))
+    }).catch(err => console.log(err))
 };
 
 ipc.on('getRoomCode', async function (event, value) {
@@ -131,7 +130,7 @@ async function updateClassroom() {
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { code: classCode };
-        const update = { $set: {"finished": true}}
+        const update = { $set: { "finished": true } }
         return await collection.updateOne(query, update).catch(err => {
             console.log(err);
         })
