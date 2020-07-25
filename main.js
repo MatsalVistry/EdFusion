@@ -55,10 +55,52 @@ ipc.on('login_data', async function (event, value) {
                 pathname: '/public/html/dashboard.html',
                 protocol: 'file:',
                 slashes: true,
-            }));
+            })).then(()=>
+            {
+                mainWindow.webContents.send('chartData', getChartData());
+            });
         }
     });
 });
+async function getChartData()
+{
+    event.preventDefault();
+    
+    const collection = mongo.db("edfusion").collection("teachers");
+    const query = { _id: teacherID };
+    return await collection.find(query).toArray().then(items => 
+    {
+        var items2 = items;
+        console.log(JSON.stringify(items2));
+        var confusionChart = [];
+        var ratingsChart = [];
+        var attendanceChart = [];
+        var counter = 0;
+        items2[0].statistics.forEach((indClass)=>
+        {
+            counter++;
+            var confusionPoint = 
+            {
+                "x": counter,
+                "y": indClass.averageConfusion
+            }
+            confusionChart.push(confusionPoint);
+            var ratingPoint = 
+            {
+                "x": counter,
+                "y": indClass.averageRating
+            }
+            ratingsChart.push(ratingPoint);
+            var attendancePoint = 
+            {
+                "x": counter,
+                "y": indClass.studentsAttended
+            }
+            attendanceChart.push(attendancePoint);
+        });
+        return [confusionChart,ratingsChart,attendanceChart];
+    }).catch(err => console.error(`Failed to find documents: ${err}`))
+};
 
 ipc.on('getRoomCode', async function (event, value) {
     event.preventDefault();
