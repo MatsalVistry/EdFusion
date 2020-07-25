@@ -15,6 +15,7 @@ var questions = new Set();
 var classCode = null;
 var uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
+var changeStream = null;
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -68,13 +69,15 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('deleteQuestion', async function (event, question) 
 {
-    addStatus = false;
+    changeStream.pause();
+
     console.log("In the IPC DELETE");
     questions.delete(question);
     event.preventDefault();
     await deleteQuestion(question).then(() => {
         // setTimeout(()=>addStatus=true,5000);
-        addStatus = true;
+        changeStream.resume();
+
     });
 });
 
@@ -114,6 +117,7 @@ async function getUpdatedDocument(collection,query, question)
     return await collection.find(query).toArray().then(items => 
     {
         var items2 = items;
+        console.log(JSON.stringify( items2));
         var questionsArr = items2[0].questions;
         console.log(questionsArr);
         questionsArr = questionsArr.filter(q => q.question != question);
@@ -141,8 +145,8 @@ ipc.on('startClass', async function (event, value) {
             console.log('Connected...');
 
             const collection = mongo.db("edfusion").collection("classrooms");
-            const changeStream = collection.watch();
-            
+            changeStream = collection.watch();
+
             changeStream.on('change',function(change)
             {
                 if(addStatus)
@@ -202,7 +206,7 @@ async function getRoomCode() {
             console.log('Connected...');
 
             const collection = mongo.db("edfusion").collection("classrooms");
-            collection.deleteMany({});
+            // collection.deleteMany({});
 
             const query = {};
             return await collection.find(query).toArray().then(async (items) => {
