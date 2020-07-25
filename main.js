@@ -18,6 +18,8 @@ var addStatus = true;
 var teacherID = null;
 var inSession = null;
 var confusionChartvsTime = [];
+var ratings = null;
+var ratingsSession = null;
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -122,8 +124,47 @@ ipc.on('endClass', async function (event, value) {
     event.preventDefault();
     inSession=false;
     updateClassroom();
-    updateTeacher();    
+    updateTeacher();
+    ratingsSession = true;
+    ratings = 0;
+    ratingsBuider();    
 });
+
+const ratingsBuider = async ()=>
+{
+    var timeout = 5000;
+    setTimeout(async ()=>
+    {
+        await MongoClient.connect(uri).then(async function (mongo) 
+        {
+            if(ratingsSession)
+            {
+                const collection = mongo.db("edfusion").collection("classrooms");
+                const query = { code:classCode };
+                await collection.find(query).toArray().then(items => 
+                {
+                    var rateAverage = 0;
+                    var totalStudents = 0;
+                    items[0].ratings.forEach((rate)=>
+                    {
+                        rateAverage+=rate;
+                        totalStudents++;
+                    });
+                    rateAverage/=totalStudents;
+                    ratings = rateAverage;
+                    
+                }).catch(err => console.error(`Failed to find documents: ${err}`))
+            }
+        });
+        
+        if(ratingsSession)
+        {
+            console.log(ratings);
+            mainWindow.webContents.send('updatedRatings', ratings);
+            ratingsBuider();
+        }
+    },timeout)
+}
 
 
 ipc.on('mutePerson', async function (event, question) {
@@ -319,7 +360,7 @@ ipc.on('startClass', async function (event, value) {
 
 async function confusionChartBuilder()
 {
-    var timeout = 3000;
+    var timeout = 5000;
     setTimeout(async ()=>
     {
         await MongoClient.connect(uri).then(async function (mongo) 
@@ -353,7 +394,6 @@ async function confusionChartBuilder()
         
         if(inSession)
         {
-            console.log(confusionChartvsTime);
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
         }
