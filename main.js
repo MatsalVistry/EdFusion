@@ -69,15 +69,19 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('deleteQuestion', async function (event, question) 
 {
-    changeStream.pause();
-
+    changeStream.close();
+    addStatus=false;
     console.log("In the IPC DELETE");
     questions.delete(question);
     event.preventDefault();
-    await deleteQuestion(question).then(() => {
-        // setTimeout(()=>addStatus=true,5000);
-        changeStream.resume();
-
+    await deleteQuestion(question).then(async() => 
+    {
+        await MongoClient.connect(uri).then(async function (mongo) 
+        {
+            const collection = mongo.db("edfusion").collection("classrooms");
+            changeStream = collection.watch();
+            addStatus= true;
+        });
     });
 });
 
@@ -99,7 +103,7 @@ async function deleteQuestion(question)
         var data = null;
         console.log("BEGIN REPLACE");
 
-        collection.findOneAndReplace(
+        await collection.findOneAndReplace(
             query,
             doc
 
@@ -161,6 +165,8 @@ ipc.on('startClass', async function (event, value) {
                     {
                         // console.log(questionsArr);
                         var question = questionsArr[questionsArr.length-1].question;
+                        console.log("ASDASD"+question);
+                        console.log(questions)
                         if(!questions.has(question))
                             mainWindow.webContents.send('newQuestion', question);
                     }
