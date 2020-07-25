@@ -7,3 +7,24 @@
 .graphs {
     width: 400px;
 }
+
+.star {
+    cursor: pointer;
+  }
+  
+  .star::after {
+    content: "";
+    position: absolute;
+    opacity: 0;
+    border-radius: 5px;
+    /*box-shadow: 0 5px 15px rgba(0,0,0,0.3);*/
+    transition: opacity 0.5s ease-in-out;
+  }
+  
+  .star:hover {
+    transform: scale(1.6, 1.6);
+  }
+  
+  .star:hover::after {
+    opacity: 1;
+  }
