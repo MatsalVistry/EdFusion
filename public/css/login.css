@@ -8,8 +8,17 @@ body {
     background-color: #FEF7F7;
 }
 
-.login-inputs > * {
+.logo {
     display: block;
+    width: 260px;
+    margin: 20px auto;
 }
 
-.
+.login-ctr {
+    width: min-content;
+    margin: 0 auto;
+}
+
+.login-inputs > * {
+    display: inline-block;
+}

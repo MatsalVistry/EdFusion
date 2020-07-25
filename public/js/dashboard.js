@@ -42,3 +42,12 @@ ipc.on('chartData', (event, data) => {
     loadChart(data[1], ratingCTX)
     loadChart(data[2], attendanceCTX)
 })
+
+ipc.on('loadPreviousSessionGraph', (event, data) => {
+    console.log(data);
+})
+
+ipc.on('updatedRatings', (event, data) => {
+    console.log(`rating ${data}`)
+})
+
