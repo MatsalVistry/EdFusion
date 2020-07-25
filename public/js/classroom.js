@@ -35,7 +35,7 @@ const pushQuestion = (question) => {
     let qMuteButton = document.createElement('button')
     qMuteButton.innerHTML = "Mute"
     qMuteButton.onclick = () => {
-        ipc.send('')
+        ipc.send('mutePerson', question)
     }
 
     qDiv.appendChild(qText)
