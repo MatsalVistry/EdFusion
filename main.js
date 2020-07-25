@@ -49,8 +49,6 @@ app.on('ready', function () {
 
 });
 
-
-
 // ipc.on('clicked', async function (event, value) 
 // {
 //     event.preventDefault();
@@ -81,7 +79,6 @@ ipc.on('login_data', async function (event, value) {
 
     // mainWindow.webContents.send('reply',success);
 
-
     //either work
     // mainWindow.webContents.send('reply', stuffDb);
     // event.sender.send('reply', 'value recieved is '+value);
@@ -90,19 +87,23 @@ ipc.on('login_data', async function (event, value) {
 ipc.on('getRoomCode', async function (event, value) {
     event.preventDefault();
     const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
-    await getRoomCode(uri).then((data) => 
-    {
-        console.log(data);
+    await getRoomCode(uri).then((roomCode) => {
+        console.log(roomCode);
+        if (roomCode) {
+            mainWindow.loadURL(url.format({
+                pathname: '/public/html/classcode.html',
+                protocol: 'file:',
+                slashes: true,
+            })).then(() => {
+                mainWindow.webContents.send('code', roomCode);
+            });
+        }
     });
-
-    // mainWindow.webContents.send('reply',success);
-
 
     //either work
     // mainWindow.webContents.send('reply', stuffDb);
     // event.sender.send('reply', 'value recieved is '+value);
 });
-
 
 async function verifyTeacher(uri, value) {
     return await MongoClient.connect(uri)
@@ -112,7 +113,7 @@ async function verifyTeacher(uri, value) {
             const collection = mongo.db("edfusion").collection("teachers");
 
             const query = { email: value[0], password: value[1] };
-            var data = "SUDNIFhsDUIFUIDSNFIJOSDMNF";
+            var data = null;
             return await collection.find(query).toArray().then(items => {
                 console.log(items.length);
                 if (items.length > 0)
@@ -127,8 +128,7 @@ async function verifyTeacher(uri, value) {
         }).catch(function (err) { })
 
 }
-async function getRoomCode(uri) 
-{
+async function getRoomCode(uri) {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
             console.log('Connected...');
@@ -136,28 +136,27 @@ async function getRoomCode(uri)
             const collection = mongo.db("edfusion").collection("classrooms");
 
             const query = {};
-            return await collection.find(query).toArray().then(async (items) => 
-            {
+            return await collection.find(query).toArray().then(async (items) => {
                 var codes = new Set();
-                items.forEach((item)=>{
+                items.forEach((item) => {
                     codes.add(item.code)
                 })
                 // codes.forEach((code)=>console.log(code));
                 var num = Math.floor((Math.random() * 999999) + 1);
-                while(codes.has(num)===true)
+                while (codes.has(num) === true)
                     num = Math.floor((Math.random() * 999999) + 1);
 
                 await collection.insertOne
-                (
-                    {
-                        "code": num,
-                        "teacherID": teacherID,
-                        "students":[],
-                        "questions":[],
-                        "ratings": []
-                    }
-                );
-    
+                    (
+                        {
+                            "code": num,
+                            "teacherID": teacherID,
+                            "students": [],
+                            "questions": [],
+                            "ratings": []
+                        }
+                    );
+
                 return num;
             }).catch(err => console.error(`Failed to find documents: ${err}`))
 
@@ -165,13 +164,6 @@ async function getRoomCode(uri)
         }).catch(function (err) { })
 
 }
-
-
-
-
-
-
-
 
 async function getData(uri) {
     await MongoClient.connect(uri)
