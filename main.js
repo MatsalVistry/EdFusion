@@ -21,7 +21,7 @@ var confusionChartvsTime = [];
 var ratings = null;
 var ratingsSession = null;
 
-app.on('ready', function () {
+app.on('ready', async function () {
     mainWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
@@ -36,20 +36,57 @@ app.on('ready', function () {
 
     mainWindow.webContents.openDevTools() //TODO remove on prod
 
-    mainWindow.on('close', (e) => {
+    mainWindow.on('close', async (e) => {
         e.preventDefault();
-        MongoClient.connect(uri).then(function (mongo) {
+        MongoClient.connect(uri).then(async function (mongo) {
             const collection = mongo.db("edfusion").collection("classrooms");
             const query = { code: classCode };
-            var data = null;
-            collection.deleteOne(
-                query
-            ).catch(err => console.error(`Failed to find documents: ${err}`)).then(() => {
-                app.exit(0)
-            })
-        })
+            const collection2 = mongo.db("edfusion").collection("teachers");
+            const query2 = { code: classCode };
+
+            if(ratingsSession)
+            {            
+                ratingsSession = false;
+                var classID = await collection.find(query).toArray().then(items =>{return items[0]._id;}).catch((err)=>console.log(err));
+                
+                var doc = await finalTeacherUpdate(collection2,query2,classID);
+
+                await collection2.findOneAndReplace(
+                    query2,
+                    doc
+                ).then( ()=>
+                {
+                    collection.deleteOne(
+                        query
+                    ).catch(err => console.error(`Failed to find documents: ${err}`)).then(() => {
+                        app.exit(0)
+                    })
+                }).catch((err)=>console.log(err))
+            }
+            else
+                app.exit(0);
+        }).catch((err)=>console.log(err))
     });
 });
+
+const finalTeacherUpdate = async (collection,query,classID)=>
+{  
+    return await collection.find(query).toArray().then(items => 
+    {
+        var items2 = items;
+        console.log(classID);
+        items2[0].code = null;
+        items2[0].statistics.forEach((stat)=>
+        {
+            if(stat.classroomID.toString()==classID.toString())
+            {
+                stat.averageRating = ratings;
+            }
+        });
+        return items2[0];
+     }).catch(err => console.error(`Failed to find documents: ${err}`))
+    
+}
 
 ipc.on('login_data', async function (event, value) {
     event.preventDefault();
@@ -151,7 +188,7 @@ const ratingsBuider = async ()=>
                         totalStudents++;
                     });
                     rateAverage/=totalStudents;
-                    ratings = rateAverage;
+                    ratings = rateAverage || 0;
                     
                 }).catch(err => console.error(`Failed to find documents: ${err}`))
             }
@@ -243,7 +280,7 @@ async function updateTeacher() {
 
             const collection2 = mongo.db("edfusion").collection("teachers");
             const query2 = { code: classCode };
-            var doc = await getUpdatedTeacher(collection2, query2, arr);
+            var doc = await getUpdatedTeacher(collection2, query2, arr, items[0]._id);
 
             await collection2.findOneAndReplace(
                 query2,
@@ -254,14 +291,15 @@ async function updateTeacher() {
     }).catch(function (err) { })
 }
 
-async function getUpdatedTeacher(collection, query, arr) {
+async function getUpdatedTeacher(collection, query, arr, cid) {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
         var obj =
         {
             "averageConfusion": arr[0],
             "averageRating": arr[1],
-            "studentsAttended": arr[2]
+            "studentsAttended": arr[2],
+            "classroomID": cid
         }
         items2[0].statistics.push(obj);
         return items2[0];
