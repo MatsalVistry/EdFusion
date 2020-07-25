@@ -64,6 +64,69 @@ ipc.on('getRoomCode', async function (event, value) {
     });
 });
 
+ipc.on('endClass', async function (event, value) {
+    event.preventDefault();
+    updateTeacher();
+});
+
+async function updateTeacher()
+{
+    return await MongoClient.connect(uri).then(async function (mongo) 
+    {
+        console.log('Connected...');
+        const collection = mongo.db("edfusion").collection("classrooms");
+
+        const query = {code:classCode};
+        var data = null;
+        return await collection.find(query).toArray().then(async (items) => 
+        {
+            var totalStudents = 0;
+            var averageConfusion = 0;
+            var averageRatings = 0;
+
+            items[0].students.forEach((student)=>
+            {
+                averageConfusion+=student.confusion;
+                totalStudents++;
+            });
+            items[0].ratings.forEach((rate)=>averageRatings+=rate);
+            averageRatings/=items[0].ratings.length;
+            averageConfusion/=totalStudents;
+            var arr = [averageConfusion,averageRatings,totalStudents];
+
+
+            const collection2 = mongo.db("edfusion").collection("teachers");
+            const query2 = {code:classCode};
+            var doc = await getUpdatedTeacher(collection2, query2, arr);
+
+            console.log(JSON.stringify(doc));
+
+            await collection2.findOneAndReplace(
+                query2,
+                doc
+            ).catch((err) => console.log(err))
+        }).catch(err => console.error(`Failed to find documents: ${err}`))
+
+    }).catch(function (err) { })
+}
+
+async function getUpdatedTeacher(collection, query, arr) 
+{
+    return await collection.find(query).toArray().then(items => 
+    {
+        var items2 = items;
+        console.log(JSON.stringify(items2));
+        var obj = 
+        {
+            "averageConfusion": arr[0],
+            "averageRating": arr[1],
+            "studentsAttended":arr[2]
+        }
+        items2[0].statistics.push(obj);
+        return items2[0];
+    }).catch(err => console.error(`Failed to find documents: ${err}`))
+}
+
 
 
 ipc.on('deleteQuestion', async function (event, question) {
