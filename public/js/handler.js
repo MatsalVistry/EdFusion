@@ -1,6 +1,5 @@
 window.$ = window.jQuery = require('jquery');
-$(document).ready(function() 
-{
+$(document).ready(() => {
     $('.initialHeader').text(0);
     var counter = 0;
 

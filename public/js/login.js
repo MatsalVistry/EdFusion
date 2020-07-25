@@ -2,7 +2,7 @@ const ipc = require('electron').ipcRenderer;
 window.$ = window.jQuery = require('jquery');
 
 
-$(document).ready(function() {
+$(document).ready(() => {
     $(".login-inputs").submit((e) => {
         e.preventDefault()
         let username = $('.user').val()

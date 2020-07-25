@@ -11,7 +11,7 @@ let mainWindow;
 const ipc = electron.ipcMain;
 const MongoClient = require('mongodb').MongoClient;
 var teacherID = null;
-var question = new Set();
+var questions = new Set();
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -20,11 +20,14 @@ app.on('ready', function () {
         }
     });
 
-    mainWindow.loadURL(url.format({
+    mainWindow.loadURL(url.format({ 
         pathname: '/public/html/login.html',//'/index.html',
         protocol: 'file:',
         slashes: true,
     }));
+
+    mainWindow.webContents.openDevTools()
+
 
     // const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
     // MongoClient.connect(uri).then(function (mongo) 
@@ -130,7 +133,6 @@ ipc.on('startClass', async function (event, value) {
                 var question = questionsArr[questionsArr.length-1].question;
                 if(!questions.has(question))
                     mainWindow.webContents.send('newQuestion', question);
-                console.log(question);
             });
 
         }).catch(function (err) {

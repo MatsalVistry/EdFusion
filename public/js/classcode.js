@@ -1,7 +1,7 @@
 const ipc = require('electron').ipcRenderer;
 window.$ = window.jQuery = require('jquery');
 
-$(document).ready(function () {
+$(document).ready(() => {
     $("#start-class").click((e) => {
         e.preventDefault()
         console.log("HEY BOIS");
