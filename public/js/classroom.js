@@ -22,18 +22,24 @@ const pushQuestion = (question) => {
     let qText = document.createElement('p')
     qText.innerHTML = question
 
-    let qButton = document.createElement('button')
-    qButton.innerHTML = "Ya Boi"
-
-    qButton.onclick = () => {
+    let qDelButton = document.createElement('button')
+    qDelButton.innerHTML = "Yeet"
+    qDelButton.onclick = () => {
         ipc.send('deleteQuestion', question)
 
         qText.remove()
-        qButton.remove()
+        qDelButton.remove()
         qDiv.remove()
     }
 
+    let qMuteButton = document.createElement('button')
+    qMuteButton.innerHTML = "Mute"
+    qMuteButton.onclick = () => {
+        ipc.send('')
+    }
+
     qDiv.appendChild(qText)
-    qDiv.appendChild(qButton)
+    qDiv.appendChild(qDelButton)
+    qDiv.appendChild(qMuteButton)
     questions.append(qDiv)
 }

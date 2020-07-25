@@ -1,7 +1,7 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
-const { protocol } = require('electron');
+const { protocol, Notification } = require('electron');
 const { pipeline } = require('stream');
 const { verify } = require('crypto');
 
@@ -13,7 +13,7 @@ const MongoClient = require('mongodb').MongoClient;
 var teacherID = null;
 var questions = new Set();
 var classCode = null;
-var uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
+const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
 
 app.on('ready', function () {
@@ -29,15 +29,26 @@ app.on('ready', function () {
         slashes: true,
     }));
 
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools() //TODO remove on prod
 
+    mainWindow.on('close', (e) => {
+        e.preventDefault();
+        MongoClient.connect(uri).then(function (mongo) {
+            const collection = mongo.db("edfusion").collection("classrooms");
+            const query = { code: classCode };
+            var data = null;
+            collection.deleteOne(
+                query 
+            ).catch(err => console.error(`Failed to find documents: ${err}`)).then(() => {
+                app.exit(0)
+            })
+        })
+    });
 });
-
 
 ipc.on('login_data', async function (event, value) {
     event.preventDefault();
     await verifyTeacher(value).then((data) => {
-        console.log(data);
         if (data === true) {
             mainWindow.loadURL(url.format({
                 pathname: '/public/html/dashboard.html',
@@ -130,7 +141,6 @@ async function getUpdatedTeacher(collection, query, arr)
 
 
 ipc.on('deleteQuestion', async function (event, question) {
-    // changeStream.close();
     addStatus = false;
     questions.delete(question);
     event.preventDefault();
@@ -138,7 +148,6 @@ ipc.on('deleteQuestion', async function (event, question) {
         addStatus = true;
     });
 });
-
 
 async function deleteQuestion(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
@@ -166,17 +175,12 @@ async function getUpdatedDocument(collection, query, question) {
         var items2 = items;
         console.log(JSON.stringify(items2));
         var questionsArr = items2[0].questions;
-        console.log(questionsArr);
         questionsArr = questionsArr.filter(q => q.question != question);
         items2[0].questions = questionsArr;
-        console.log(items2[0].questions);
-        console.log(questionsArr);
-
 
         return items2[0];
     }).catch(err => console.error(`Failed to find documents: ${err}`))
 }
-
 
 ipc.on('startClass', async function (event, value) {
     event.preventDefault();
@@ -193,31 +197,30 @@ ipc.on('startClass', async function (event, value) {
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
-                    var questionsArr = null;
-                    // if(change.fullDocument)
-                    questionsArr = change.fullDocument.questions;
-                    // else
-                    //     questionsArr = change.updateDescription.updatedFields.questions;
+                    console.log("change")
+                    let questionsArr = null;
+                    if (change.fullDocument)
+                        questionsArr = change.fullDocument.questions;
+                    else if (change.updateDescription)
+                        questionsArr = change.updateDescription.updatedFields.questions;
                     if (questionsArr && questionsArr.length > 0) {
-                        // console.log(questionsArr);
                         var question = questionsArr[questionsArr.length - 1].question;
-                        console.log(questions)
                         if (!questions.has(question)) {
                             questions.add(question)
+                            console.log("QUESTION: " + JSON.stringify(question))
                             mainWindow.webContents.send('newQuestion', question);
+                            new Notification({
+                                title: "New Question!", 
+                                body: question
+                            }).show()
                         }
                     }
                 }
-
             });
-
         }).catch(function (err) {
             console.log("ERROR" + err)
         })
-
     });
-
-
 });
 
 async function verifyTeacher(value) {
@@ -230,7 +233,6 @@ async function verifyTeacher(value) {
             const query = { email: value[0], password: value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
-                console.log(items.length);
                 if (items.length > 0)
                     data = true;
                 else
@@ -241,15 +243,13 @@ async function verifyTeacher(value) {
 
 
         }).catch(function (err) { })
-
 }
+
 async function getRoomCode() {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
             console.log('Connected...');
-
             const collection = mongo.db("edfusion").collection("classrooms");
-            collection.deleteMany({});
 
             const query = {};
             return await collection.find(query).toArray().then(async (items) => {
@@ -267,16 +267,13 @@ async function getRoomCode() {
                         {
                             "code": num,
                             "teacherID": teacherID,
+                            "finished": false,
                             "students": [],
                             "questions": [],
                             "ratings": []
                         }
                     );
-
                 return num;
             }).catch(err => console.error(`Failed to find documents: ${err}`))
-
-
         }).catch(function (err) { })
-
 }
