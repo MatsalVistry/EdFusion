@@ -11,6 +11,7 @@ let mainWindow;
 const ipc = electron.ipcMain;
 const MongoClient = require('mongodb').MongoClient;
 var teacherID = null;
+var question = new Set();
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -103,6 +104,42 @@ ipc.on('getRoomCode', async function (event, value) {
     //either work
     // mainWindow.webContents.send('reply', stuffDb);
     // event.sender.send('reply', 'value recieved is '+value);
+});
+
+
+ipc.on('startClass', async function (event, value) {
+    event.preventDefault();
+    mainWindow.loadURL(url.format({
+        pathname: '/public/html/classroom.html',
+        protocol: 'file:',
+        slashes: true,
+    })).then(()=>
+    {
+        console.log("CHANGED SCREEN")
+        const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
+        MongoClient.connect(uri).then(function (mongo) 
+        {
+            console.log('Connected...');
+
+            const collection = mongo.db("edfusion").collection("classrooms");
+            const changeStream = collection.watch();
+
+            changeStream.on('change',function(change)
+            {
+                var questionsArr = change.fullDocument.questions;
+                var question = questionsArr[questionsArr.length-1].question;
+                if(!questions.has(question))
+                    mainWindow.webContents.send('newQuestion', question);
+                console.log(question);
+            });
+
+        }).catch(function (err) {
+            console.log("ERROR"+ err)
+        })
+
+    });
+
+   
 });
 
 async function verifyTeacher(uri, value) {
