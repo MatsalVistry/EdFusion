@@ -29,10 +29,22 @@ app.on('ready', function () {
         slashes: true,
     }));
 
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools() //TODO remove on prod
 
+    mainWindow.on('close', (e) => {
+        e.preventDefault();
+        MongoClient.connect(uri).then(function (mongo) {
+            const collection = mongo.db("edfusion").collection("classrooms");
+            const query = { code: classCode };
+            var data = null;
+            collection.deleteOne(
+                query 
+            ).catch(err => console.error(`Failed to find documents: ${err}`)).then(() => {
+                app.exit(0)
+            })
+        })
+    });
 });
-
 
 ipc.on('login_data', async function (event, value) {
     event.preventDefault();
@@ -64,10 +76,7 @@ ipc.on('getRoomCode', async function (event, value) {
     });
 });
 
-
-
 ipc.on('deleteQuestion', async function (event, question) {
-    // changeStream.close();
     addStatus = false;
     questions.delete(question);
     event.preventDefault();
@@ -75,7 +84,6 @@ ipc.on('deleteQuestion', async function (event, question) {
         addStatus = true;
     });
 });
-
 
 async function deleteQuestion(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
@@ -103,17 +111,12 @@ async function getUpdatedDocument(collection, query, question) {
         var items2 = items;
         console.log(JSON.stringify(items2));
         var questionsArr = items2[0].questions;
-        console.log(questionsArr);
         questionsArr = questionsArr.filter(q => q.question != question);
         items2[0].questions = questionsArr;
-        console.log(items2[0].questions);
-        console.log(questionsArr);
-
 
         return items2[0];
     }).catch(err => console.error(`Failed to find documents: ${err}`))
 }
-
 
 ipc.on('startClass', async function (event, value) {
     event.preventDefault();
@@ -130,13 +133,12 @@ ipc.on('startClass', async function (event, value) {
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
-                    var questionsArr = null;
-                    // if(change.fullDocument)
-                    questionsArr = change.fullDocument.questions;
-                    // else
-                    //     questionsArr = change.updateDescription.updatedFields.questions;
+                    let questionsArr = null;
+                    if (change.fullDocument)
+                        questionsArr = change.fullDocument.questions;
+                    else if (change.updateDescription)
+                        questionsArr = change.updateDescription.updatedFields.questions;
                     if (questionsArr && questionsArr.length > 0) {
-                        // console.log(questionsArr);
                         var question = questionsArr[questionsArr.length - 1].question;
                         console.log(questions)
                         if (!questions.has(question)) {
@@ -147,14 +149,10 @@ ipc.on('startClass', async function (event, value) {
                 }
 
             });
-
         }).catch(function (err) {
             console.log("ERROR" + err)
         })
-
     });
-
-
 });
 
 async function verifyTeacher(value) {
@@ -178,15 +176,13 @@ async function verifyTeacher(value) {
 
 
         }).catch(function (err) { })
-
 }
+
 async function getRoomCode() {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
             console.log('Connected...');
-
             const collection = mongo.db("edfusion").collection("classrooms");
-            collection.deleteMany({});
 
             const query = {};
             return await collection.find(query).toArray().then(async (items) => {
@@ -204,16 +200,13 @@ async function getRoomCode() {
                         {
                             "code": num,
                             "teacherID": teacherID,
+                            "finished": false,
                             "students": [],
                             "questions": [],
                             "ratings": []
                         }
                     );
-
                 return num;
             }).catch(err => console.error(`Failed to find documents: ${err}`))
-
-
         }).catch(function (err) { })
-
 }
