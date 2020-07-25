@@ -5,14 +5,14 @@ const { protocol } = require('electron');
 const { pipeline } = require('stream');
 const { verify } = require('crypto');
 
-const{app, BrowserWindow} = electron;
+const { app, BrowserWindow } = electron;
 
 let mainWindow;
 const ipc = electron.ipcMain;
 const MongoClient = require('mongodb').MongoClient;
 
 
-app.on('ready',function(){
+app.on('ready', function () {
     mainWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
@@ -36,12 +36,12 @@ app.on('ready',function(){
     //     changeStream.on('change',function(change)
     //     {
     //         // console.log("ASDONJFOSDIHNFIOSDNF"+JSON.stringify(change));
-    
+
     //         const query = {};
     //         collection.find(query).toArray().then(items =>
     //         {
     //             mainWindow.webContents.send('reply', JSON.stringify(items));
-    
+
     //         }).catch(err => console.error(`Failed to find documents: ${err}`))
     //     });
 
@@ -58,22 +58,27 @@ app.on('ready',function(){
 //     var data = await getData(uri);
 //     mainWindow.webContents.send('reply',data);
 
-    
+
 
 //     //either work
 //     // mainWindow.webContents.send('reply', stuffDb);
 //     // event.sender.send('reply', 'value recieved is '+value);
 // });
 
-ipc.on('login_data', async function (event, value) 
-{
+ipc.on('login_data', async function (event, value) {
     event.preventDefault();
     const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
-    await verifyTeacher(uri,value).then((data)=>{
+    await verifyTeacher(uri, value).then((data) => {
         console.log(data);
-    // mainWindow.webContents.send('logInStatus',data);
+        if (data === true) {
+            mainWindow.loadURL(url.format({
+                pathname: '/public/html/dashboard.html',
+                protocol: 'file:',
+                slashes: true,
+            }));
+        }
     });
-    
+
     // mainWindow.webContents.send('reply',success);
 
 
@@ -83,29 +88,26 @@ ipc.on('login_data', async function (event, value)
 });
 
 
-async function verifyTeacher(uri,value)
-{
+async function verifyTeacher(uri, value) {
     return await MongoClient.connect(uri)
-    .then(async function (mongo) 
-    {
-        console.log('Connected...');
+        .then(async function (mongo) {
+            console.log('Connected...');
 
-        const collection =  mongo.db("edfusion").collection("teachers");
+            const collection = mongo.db("edfusion").collection("teachers");
 
-        const query = { email: value[0], password:value[1] };
-        var data = "SUDNIFhsDUIFUIDSNFIJOSDMNF";
-        return await collection.find(query).toArray().then(items =>
-        {
-            console.log(items.length);
-            if(items.length>0)
-                data =  "Success";
-            else
-               data = "Failure";
-            return data;
-        }).catch(err => console.error(`Failed to find documents: ${err}`))
+            const query = { email: value[0], password: value[1] };
+            var data = "SUDNIFhsDUIFUIDSNFIJOSDMNF";
+            return await collection.find(query).toArray().then(items => {
+                console.log(items.length);
+                if (items.length > 0)
+                    data = true;
+                else
+                    data = false;
+                return data;
+            }).catch(err => console.error(`Failed to find documents: ${err}`))
 
 
-    }).catch(function (err) {})
+        }).catch(function (err) { })
 
 }
 
@@ -116,69 +118,66 @@ async function verifyTeacher(uri,value)
 
 
 
-async function getData(uri)
-{
+async function getData(uri) {
     await MongoClient.connect(uri)
-    .then(async function (mongo) 
-    {
-        console.log('Connected...');
+        .then(async function (mongo) {
+            console.log('Connected...');
 
-        const collection =  mongo.db("edfusion").collection("classrooms");
+            const collection = mongo.db("edfusion").collection("classrooms");
 
-        // collection.deleteMany({ stuffs: "i got added" });
+            // collection.deleteMany({ stuffs: "i got added" });
 
-        await collection.insertOne
-        (
-            {
-                "code":15927,
-                "teacherID": "453125",
-                "students":
-                [
+            await collection.insertOne
+                (
                     {
-                        "student_id":"saidojasd",
-                        "muted":false,
-                        "confusion":40,
+                        "code": 15927,
+                        "teacherID": "453125",
+                        "students":
+                            [
+                                {
+                                    "student_id": "saidojasd",
+                                    "muted": false,
+                                    "confusion": 40,
+                                }
+                            ],
+                        "questions":
+                            [
+                                {
+                                    "student_id": "saidojasd",
+                                    "question": "Why is sarvesh?"
+                                }
+                            ],
+                        "ratings": [4, 1, 5]
                     }
-                ],
-                "questions":
-                [
-                    {
-                        "student_id":"saidojasd",
-                        "question":"Why is sarvesh?"
-                    }
-                ],
-                "ratings":[4,1,5]
-            }
-        );
+                );
 
-        // await collection.insertOne
-        // (
-        //     {
-        //         "email":"hi@gmail.com",
-        //         "password":"duisdfisk",
-        //         "code": 3457823,
-        //         "statistics":
-        //         [
-        //             {
-        //                 "classroomID": "asdfd324324",
-        //                 "averageRating": 2,
-        //                 "averageConfusion": 40,
-        //                 "studentsAttended": 20
-        //             }
-        //         ]
-        //     }
-        // );
+            // await collection.insertOne
+            // (
+            //     {
+            //         "email":"hi@gmail.com",
+            //         "password":"duisdfisk",
+            //         "code": 3457823,
+            //         "statistics":
+            //         [
+            //             {
+            //                 "classroomID": "asdfd324324",
+            //                 "averageRating": 2,
+            //                 "averageConfusion": 40,
+            //                 "studentsAttended": 20
+            //             }
+            //         ]
+            //     }
+            // );
 
-        const query = {};
-        var data = null;
-        await collection.find(query).toArray().then(items =>
-        {
-            data = JSON.stringify(items);
+            const query = {};
+            var data = null;
+            await collection.find(query).toArray().then(items => {
+                data = JSON.stringify(items);
 
-        }).catch(err => console.error(`Failed to find documents: ${err}`))
+            }).catch(err => console.error(`Failed to find documents: ${err}`))
 
-        return data;
+            return data;
 
-    }).catch(function (err) {})
+        }).catch(function (err) { })
 
 }
