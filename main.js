@@ -123,6 +123,50 @@ ipc.on('endClass', async function (event, value) {
     updateTeacher();
 });
 
+
+ipc.on('mutePerson', async function (event, question) {
+    event.preventDefault();
+    await mutePerson(question).then(async () => {});
+});
+async function mutePerson(question) {
+    return await MongoClient.connect(uri).then(async function (mongo) {
+        console.log('Connected...');
+        console.log(addStatus)
+
+        const collection = mongo.db("edfusion").collection("classrooms");
+
+        const query = { code: classCode };
+        var doc = await muteHelper(collection, query, question);
+
+        console.log(JSON.stringify(doc));
+
+        await collection.findOneAndReplace(
+            query,
+            doc
+        ).catch((err) => console.log(err))
+    }).catch(function (err) { })
+}
+
+async function muteHelper(collection, query, question) {
+
+    return await collection.find(query).toArray().then(items => {
+        var items2 = items;
+        var studentID = null;
+        items2[0].questions.forEach((q)=>
+        {
+            if(q.question==question)
+                studentID = q.student_id;
+        })
+
+        items2[0].students.forEach((student)=>
+        {
+            if(student.student_id==studentID)
+                student.muted = !student.muted;
+        })
+        return items2[0];
+    }).catch(err => console.error(`Failed to find documents: ${err}`))
+}
+
 async function updateClassroom() {
     return await MongoClient.connect(uri).then(async function (mongo) {
         console.log('Connected...');
