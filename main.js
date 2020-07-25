@@ -20,7 +20,7 @@ app.on('ready',function(){
     });
 
     mainWindow.loadURL(url.format({
-        pathname: '/index.html',
+        pathname: '/public/html/login.html',//'/index.html',
         protocol: 'file:',
         slashes: true,
     }));
@@ -65,7 +65,7 @@ app.on('ready',function(){
 //     // event.sender.send('reply', 'value recieved is '+value);
 // });
 
-ipc.on('clicked', async function (event, value) 
+ipc.on('login_data', async function (event, value) 
 {
     event.preventDefault();
     const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
@@ -76,7 +76,6 @@ ipc.on('clicked', async function (event, value)
     
     // mainWindow.webContents.send('reply',success);
 
-    
 
     //either work
     // mainWindow.webContents.send('reply', stuffDb);
@@ -102,15 +101,9 @@ async function verifyTeacher(uri,value)
                 data =  "Success";
             else
                data = "Failure";
-
-            // console.log(data);
             return data;
         }).catch(err => console.error(`Failed to find documents: ${err}`))
-        
-        
-        // console.log(data);
-        
-        // return data;
+
 
     }).catch(function (err) {})
 
