@@ -8,6 +8,7 @@ $(document).ready(() => {
         $("#create-classroom").prop('disabled', true)
         ipc.send('getRoomCode')
     })
+    pushReview("you suck lol")
 })
 
 
@@ -16,8 +17,8 @@ const loadChart = (data, ctx) => {
     var data = {
         labels: data.map(point => point.x),
         datasets: [{
-          label: "Car Speed",
-          data: data.map(point => point.y)
+            label: "Car Speed",
+            data: data.map(point => point.y)
         }]
     };
 
@@ -31,6 +32,19 @@ const loadChart = (data, ctx) => {
             }
         }
     });
+}
+
+const pushReview = (rev) => {
+    let reviews = document.querySelector(".reviews");
+
+    let qDiv = document.createElement('div')
+    qDiv.className = "reviewCard"
+
+    let qText = document.createElement('p')
+    qText.innerHTML = rev
+
+    qDiv.appendChild(qText)
+    reviews.append(qDiv)
 }
 
 ipc.on('chartData', (event, data) => {
@@ -50,6 +64,12 @@ ipc.on('loadPreviousSessionGraph', (event, data) => {
 })
 
 ipc.on('updatedRatings', (event, data) => {
-    console.log(`rating ${data}`)
+    let rating = math.round(data);
+    // MEHUL PUT STAR CODE HERE
 })
 
+ipc.on('updatedReviews', (event, data) => {
+    data.map(rev => {
+        pushReview(rev)
+    })
+})

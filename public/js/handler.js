@@ -16,6 +16,7 @@ $(document).ready(() => {
         // event.preventDefault();     not working for page refresh
         $('.initialHeader').text(reply);
     });
+    
     ipc.on('logInStatus', function(event, reply) {
         // event.preventDefault();     not working for page refresh
         console.log(reply);
