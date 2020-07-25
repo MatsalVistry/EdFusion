@@ -3,6 +3,7 @@ const url = require('url');
 const path = require('path');
 const { protocol } = require('electron');
 const { pipeline } = require('stream');
+const { verify } = require('crypto');
 
 const{app, BrowserWindow} = electron;
 
@@ -24,38 +25,56 @@ app.on('ready',function(){
         slashes: true,
     }));
 
-    const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
-    MongoClient.connect(uri).then(function (mongo) 
-    {
-        console.log('Connected...');
+    // const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
+    // MongoClient.connect(uri).then(function (mongo) 
+    // {
+    //     console.log('Connected...');
 
-        const collection = mongo.db("edfusion").collection("classrooms");
-        const changeStream = collection.watch();
+    //     const collection = mongo.db("edfusion").collection("classrooms");
+    //     const changeStream = collection.watch();
 
-        changeStream.on('change',function(change)
-        {
-            console.log("ASDONJFOSDIHNFIOSDNF"+JSON.stringify(change));
+    //     changeStream.on('change',function(change)
+    //     {
+    //         // console.log("ASDONJFOSDIHNFIOSDNF"+JSON.stringify(change));
     
-            const query = {};
-            collection.find(query).toArray().then(items =>
-            {
-                mainWindow.webContents.send('reply', JSON.stringify(items));
+    //         const query = {};
+    //         collection.find(query).toArray().then(items =>
+    //         {
+    //             mainWindow.webContents.send('reply', JSON.stringify(items));
     
-            }).catch(err => console.error(`Failed to find documents: ${err}`))
-        });
+    //         }).catch(err => console.error(`Failed to find documents: ${err}`))
+    //     });
 
-    }).catch(function (err) {})
+    // }).catch(function (err) {})
 
 });
 
 
 
+// ipc.on('clicked', async function (event, value) 
+// {
+//     event.preventDefault();
+//     const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
+//     var data = await getData(uri);
+//     mainWindow.webContents.send('reply',data);
+
+    
+
+//     //either work
+//     // mainWindow.webContents.send('reply', stuffDb);
+//     // event.sender.send('reply', 'value recieved is '+value);
+// });
+
 ipc.on('clicked', async function (event, value) 
 {
     event.preventDefault();
     const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
-    var data = await getData(uri);
-    mainWindow.webContents.send('reply',data);
+    await verifyTeacher(uri,value).then((data)=>{
+        console.log(data);
+    // mainWindow.webContents.send('logInStatus',data);
+    });
+    
+    // mainWindow.webContents.send('reply',success);
 
     
 
@@ -63,6 +82,46 @@ ipc.on('clicked', async function (event, value)
     // mainWindow.webContents.send('reply', stuffDb);
     // event.sender.send('reply', 'value recieved is '+value);
 });
+
+
+async function verifyTeacher(uri,value)
+{
+    return await MongoClient.connect(uri)
+    .then(async function (mongo) 
+    {
+        console.log('Connected...');
+
+        const collection =  mongo.db("edfusion").collection("teachers");
+
+        const query = { email: value[0], password:value[1] };
+        var data = "SUDNIFhsDUIFUIDSNFIJOSDMNF";
+        return await collection.find(query).toArray().then(items =>
+        {
+            console.log(items.length);
+            if(items.length>0)
+                data =  "Success";
+            else
+               data = "Failure";
+
+            // console.log(data);
+            return data;
+        }).catch(err => console.error(`Failed to find documents: ${err}`))
+        
+        
+        // console.log(data);
+        
+        // return data;
+
+    }).catch(function (err) {})
+
+}
+
+
+
+
+
+
+
 
 async function getData(uri)
 {

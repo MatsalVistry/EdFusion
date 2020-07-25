@@ -9,12 +9,17 @@ $(document).ready(function()
     $('.btn').click(function (event){
         event.preventDefault();
         counter++;
-        ipc.send('clicked', counter);
+        var arr = ["hi@gmail.com","duisdfisk"];
+        ipc.send('clicked', arr);
     });
 
     ipc.on('reply', function(event, reply) {
         // event.preventDefault();     not working for page refresh
         $('.initialHeader').text(reply);
+    });
+    ipc.on('logInStatus', function(event, reply) {
+        // event.preventDefault();     not working for page refresh
+        console.log(reply);
     });
 
 
