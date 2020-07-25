@@ -16,6 +16,7 @@ var classCode = null;
 const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
 var teacherID = null;
+var confusionChartvsTime = [];
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -70,7 +71,6 @@ async function getChartData() {
         const query = { _id: teacherID };
         return await collection.find(query).toArray().then(items => {
             var items2 = items;
-            console.log(JSON.stringify(items2));
             var confusionChart = [];
             var ratingsChart = [];
             var attendanceChart = [];
@@ -131,14 +131,11 @@ ipc.on('mutePerson', async function (event, question) {
 async function mutePerson(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
         console.log('Connected...');
-        console.log(addStatus)
 
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { code: classCode };
         var doc = await muteHelper(collection, query, question);
-
-        console.log(JSON.stringify(doc));
 
         await collection.findOneAndReplace(
             query,
@@ -207,8 +204,6 @@ async function updateTeacher() {
             const query2 = { code: classCode };
             var doc = await getUpdatedTeacher(collection2, query2, arr);
 
-            console.log(JSON.stringify(doc));
-
             await collection2.findOneAndReplace(
                 query2,
                 doc
@@ -221,7 +216,6 @@ async function updateTeacher() {
 async function getUpdatedTeacher(collection, query, arr) {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
-        console.log(JSON.stringify(items2));
         var obj =
         {
             "averageConfusion": arr[0],
@@ -247,14 +241,10 @@ ipc.on('deleteQuestion', async function (event, question) {
 async function deleteQuestion(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
         console.log('Connected...');
-        console.log(addStatus)
-
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { code: classCode };
         var doc = await getUpdatedDocument(collection, query, question);
-
-        console.log(JSON.stringify(doc));
 
         await collection.findOneAndReplace(
             query,
@@ -268,7 +258,6 @@ async function getUpdatedDocument(collection, query, question) {
 
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
-        console.log(JSON.stringify(items2));
         var questionsArr = items2[0].questions;
         questionsArr = questionsArr.filter(q => q.question != question);
         items2[0].questions = questionsArr;
@@ -286,7 +275,7 @@ ipc.on('startClass', async function (event, value) {
     })).then(() => {
         MongoClient.connect(uri).then(function (mongo) {
             console.log('Connected...');
-
+            confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
             var changeStream = collection.watch();
 
@@ -302,7 +291,6 @@ ipc.on('startClass', async function (event, value) {
                         var question = questionsArr[questionsArr.length - 1].question;
                         if (!questions.has(question)) {
                             questions.add(question)
-                            console.log("QUESTION: " + JSON.stringify(question))
                             mainWindow.webContents.send('newQuestion', question);
                             new Notification({
                                 title: "New Question!",
@@ -317,6 +305,44 @@ ipc.on('startClass', async function (event, value) {
         })
     });
 });
+
+
+async function confusionChartBuilder()
+{
+    var timeout = 10000;
+    setTimeout(async ()=>
+    {
+        await MongoClient.connect(uri).then(async function (mongo) 
+        {
+            const collection = mongo.db("edfusion").collection("classrooms");
+            const query = { code:classCode };
+            await collection.find(query).toArray().then(items => 
+            {
+                var confusionAverage = 0;
+                var totalStudents = 0;
+                items[0].students.forEach((student)=>
+                {
+                    confusionAverage+=student.confusion;
+                    totalStudents++;
+                });
+                confusionAverage/=totalStudents;
+                var today = new Date();
+
+                var obj = 
+                {
+                    "x": (today.getHours()%12)+":"+today.getMinutes(),
+                    "y": (confusionAverage) || 0
+                }
+                confusionChartvsTime.push(obj);
+                
+            }).catch(err => console.error(`Failed to find documents: ${err}`))
+        });
+
+        console.log(confusionChartvsTime);
+        mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
+        confusionChartBuilder();
+    },timeout)
+}
 
 async function verifyTeacher(value) {
     return await MongoClient.connect(uri)
@@ -366,16 +392,13 @@ async function getRoomCode() {
                             "finished": false,
                             "students": [],
                             "questions": [],
-                            "ratings": []
+                            "ratings": [],
+                            "reviews":[]
                         }
                     );
                 const collection2 = mongo.db("edfusion").collection("teachers");
-                await collection2.find(query).toArray().then(items => items.forEach((teacher) => console.log(teacher._id)))
-                console.log(teacherID)
                 const query2 = { _id: teacherID };
                 var doc = await updateTeacherCode(collection2, query2, num);
-
-                console.log(JSON.stringify(doc));
 
                 await collection2.findOneAndReplace(
                     query2,
@@ -388,7 +411,6 @@ async function getRoomCode() {
 async function updateTeacherCode(collection, query, num) {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
-        console.log(JSON.stringify(items2));
         items2[0].code = num;
         return items2[0];
     }).catch(err => console.error(`Failed to find documents: ${err}`))
