@@ -69,19 +69,36 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('deleteQuestion', async function (event, question) 
 {
-    changeStream.close();
+    // changeStream.close();
     addStatus=false;
     console.log("In the IPC DELETE");
     questions.delete(question);
     event.preventDefault();
     await deleteQuestion(question).then(async() => 
     {
-        await MongoClient.connect(uri).then(async function (mongo) 
-        {
-            const collection = mongo.db("edfusion").collection("classrooms");
-            changeStream = collection.watch();
-            addStatus= true;
-        });
+        // changeStream.on('change',function(change)
+        //     {
+        //         if(addStatus)
+        //         {
+        //             // console.log(change);
+        //             var questionsArr = null;
+        //             // if(change.fullDocument)
+        //                 questionsArr = change.fullDocument.questions;
+        //             // else
+        //             //     questionsArr = change.updateDescription.updatedFields.questions;
+        //             if(questionsArr  && questionsArr.length>0)
+        //             {
+        //                 // console.log(questionsArr);
+        //                 var question = questionsArr[questionsArr.length-1].question;
+        //                 console.log("ASDASD"+question);
+        //                 console.log(questions)
+        //                 if(!questions.has(question))
+        //                     mainWindow.webContents.send('newQuestion', question);
+        //             }
+        //         }
+                
+        //     });
+        addStatus=true;
     });
 });
 
@@ -149,7 +166,7 @@ ipc.on('startClass', async function (event, value) {
             console.log('Connected...');
 
             const collection = mongo.db("edfusion").collection("classrooms");
-            changeStream = collection.watch();
+            var changeStream = collection.watch();
 
             changeStream.on('change',function(change)
             {
@@ -212,7 +229,7 @@ async function getRoomCode() {
             console.log('Connected...');
 
             const collection = mongo.db("edfusion").collection("classrooms");
-            // collection.deleteMany({});
+            collection.deleteMany({});
 
             const query = {};
             return await collection.find(query).toArray().then(async (items) => {
