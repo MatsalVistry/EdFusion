@@ -169,21 +169,34 @@ ipc.on('endClass', async function (event, value) {
         mainWindow.webContents.send('loadPreviousSessionGraph', confusionChartvsTime);
         ratingsSession = true;
         ratings = 0;
-        await ratingsBuilder();
+        reviewsBuilder();
+        ratingsBuilder();
     });
 });
 
-const getReviews = async()=>
+
+const reviewsBuilder = async () => 
 {
-    return await MongoClient.connect(uri).then(async function (mongo) 
-    {
-        const collection = mongo.db("edfusion").collection("classrooms");
-        const query = { code: classCode };
-        return await collection.find(query).toArray().then(items => {
-            return items[0].reviews
-        }).catch(err => console.error(`Failed to find documents: ${err}`))
-        
-    });
+    var reviews = []
+    var timeout = 5000;
+    setTimeout(async () => {
+        await MongoClient.connect(uri).then(async function (mongo) {
+            if (ratingsSession) {
+                const collection = mongo.db("edfusion").collection("classrooms");
+                const query = { code: classCode };
+                await collection.find(query).toArray().then(items => 
+                {
+                    reviews =  items[0].reviews;
+                }).catch(err => console.error(`Failed to find documents: ${err}`))
+            }
+        });
+
+        if (ratingsSession) {
+            console.log(reviews);
+            mainWindow.webContents.send('updatedReviews', reviews);
+            reviewsBuilder();
+        }
+    }, timeout)
 }
 
 const ratingsBuilder = async () => {
@@ -368,6 +381,7 @@ ipc.on('startClass', async function (event, value) {
             console.log('Connected...');
             inSession = true;
             addStatus = true;
+            ratingsSession=false;
             confusionChartvsTime = [];
             questions = new Set();
             let today = new Date();
