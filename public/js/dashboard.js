@@ -44,6 +44,8 @@ ipc.on('chartData', (event, data) => {
 })
 
 ipc.on('loadPreviousSessionGraph', (event, data) => {
+    const confusionCTX = $('#session-confusion');
+    loadChart(data, confusionCTX)
     console.log(data);
 })
 
