@@ -39,7 +39,7 @@ app.on('ready', function () {
             const query = { code: classCode };
             var data = null;
             collection.deleteOne(
-                query 
+                query
             ).catch(err => console.error(`Failed to find documents: ${err}`)).then(() => {
                 app.exit(0)
             })
@@ -78,37 +78,48 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('endClass', async function (event, value) {
     event.preventDefault();
+    updateClassroom();
     updateTeacher();
 });
 
-async function updateTeacher()
-{
-    return await MongoClient.connect(uri).then(async function (mongo) 
-    {
+async function updateClassroom() {
+    return await MongoClient.connect(uri).then(async function (mongo) {
+        console.log('Connected...');
+
+        const collection = mongo.db("edfusion").collection("classrooms");
+
+        const query = { code: classCode };
+        const update = { $set: {"finished": true}}
+        return await collection.updateOne(query, update).catch(err => {
+            console.log(err);
+        })
+    })
+}
+
+async function updateTeacher() {
+    return await MongoClient.connect(uri).then(async function (mongo) {
         console.log('Connected...');
         const collection = mongo.db("edfusion").collection("classrooms");
 
-        const query = {code:classCode};
+        const query = { code: classCode };
         var data = null;
-        return await collection.find(query).toArray().then(async (items) => 
-        {
+        return await collection.find(query).toArray().then(async (items) => {
             var totalStudents = 0;
             var averageConfusion = 0;
             var averageRatings = 0;
 
-            items[0].students.forEach((student)=>
-            {
-                averageConfusion+=student.confusion;
+            items[0].students.forEach((student) => {
+                averageConfusion += student.confusion;
                 totalStudents++;
             });
-            items[0].ratings.forEach((rate)=>averageRatings+=rate);
-            averageRatings/=items[0].ratings.length;
-            averageConfusion/=totalStudents;
-            var arr = [averageConfusion,averageRatings,totalStudents];
+            items[0].ratings.forEach((rate) => averageRatings += rate);
+            averageRatings /= items[0].ratings.length;
+            averageConfusion /= totalStudents;
+            var arr = [averageConfusion, averageRatings, totalStudents];
 
 
             const collection2 = mongo.db("edfusion").collection("teachers");
-            const query2 = {code:classCode};
+            const query2 = { code: classCode };
             var doc = await getUpdatedTeacher(collection2, query2, arr);
 
             console.log(JSON.stringify(doc));
@@ -122,17 +133,15 @@ async function updateTeacher()
     }).catch(function (err) { })
 }
 
-async function getUpdatedTeacher(collection, query, arr) 
-{
-    return await collection.find(query).toArray().then(items => 
-    {
+async function getUpdatedTeacher(collection, query, arr) {
+    return await collection.find(query).toArray().then(items => {
         var items2 = items;
         console.log(JSON.stringify(items2));
-        var obj = 
+        var obj =
         {
             "averageConfusion": arr[0],
             "averageRating": arr[1],
-            "studentsAttended":arr[2]
+            "studentsAttended": arr[2]
         }
         items2[0].statistics.push(obj);
         return items2[0];
@@ -211,7 +220,7 @@ ipc.on('startClass', async function (event, value) {
                             console.log("QUESTION: " + JSON.stringify(question))
                             mainWindow.webContents.send('newQuestion', question);
                             new Notification({
-                                title: "New Question!", 
+                                title: "New Question!",
                                 body: question
                             }).show()
                         }
@@ -234,8 +243,7 @@ async function verifyTeacher(value) {
             const query = { email: value[0], password: value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
-                if (items.length > 0)
-                {
+                if (items.length > 0) {
                     data = true;
                 }
                 else
@@ -277,13 +285,13 @@ async function getRoomCode() {
                         }
                     );
                 const collection2 = mongo.db("edfusion").collection("teachers");
-                await collection2.find(query).toArray().then(items=>items.forEach((teacher)=>console.log(teacher._id)))
+                await collection2.find(query).toArray().then(items => items.forEach((teacher) => console.log(teacher._id)))
                 console.log(teacherID)
-                const query2 = {_id:teacherID};
-                var doc = await updateTeacherCode(collection2, query2,num);
-        
+                const query2 = { _id: teacherID };
+                var doc = await updateTeacherCode(collection2, query2, num);
+
                 console.log(JSON.stringify(doc));
-        
+
                 await collection2.findOneAndReplace(
                     query2,
                     doc
@@ -292,13 +300,11 @@ async function getRoomCode() {
             }).catch(err => console.error(`Failed to find documents: ${err}`))
         }).catch(function (err) { })
 }
-async function updateTeacherCode(collection,query,num)
-{
-    return await collection.find(query).toArray().then(items => 
-        {
-            var items2 = items;
-            console.log(JSON.stringify(items2));
-            items2[0].code = num;
-            return items2[0];
-        }).catch(err => console.error(`Failed to find documents: ${err}`))
+async function updateTeacherCode(collection, query, num) {
+    return await collection.find(query).toArray().then(items => {
+        var items2 = items;
+        console.log(JSON.stringify(items2));
+        items2[0].code = num;
+        return items2[0];
+    }).catch(err => console.error(`Failed to find documents: ${err}`))
 }
