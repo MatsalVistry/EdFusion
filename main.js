@@ -15,6 +15,7 @@ var questions = new Set();
 var classCode = null;
 const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
+var teacherID = null;
 
 app.on('ready', function () {
     mainWindow = new BrowserWindow({
@@ -234,7 +235,9 @@ async function verifyTeacher(value) {
             var data = null;
             return await collection.find(query).toArray().then(items => {
                 if (items.length > 0)
+                {
                     data = true;
+                }
                 else
                     data = false;
                 teacherID = items[0]._id;
@@ -273,7 +276,29 @@ async function getRoomCode() {
                             "ratings": []
                         }
                     );
+                const collection2 = mongo.db("edfusion").collection("teachers");
+                await collection2.find(query).toArray().then(items=>items.forEach((teacher)=>console.log(teacher._id)))
+                console.log(teacherID)
+                const query2 = {_id:teacherID};
+                var doc = await updateTeacherCode(collection2, query2,num);
+        
+                console.log(JSON.stringify(doc));
+        
+                await collection2.findOneAndReplace(
+                    query2,
+                    doc
+                ).catch((err) => console.log(err))
                 return num;
             }).catch(err => console.error(`Failed to find documents: ${err}`))
         }).catch(function (err) { })
+}
+async function updateTeacherCode(collection,query,num)
+{
+    return await collection.find(query).toArray().then(items => 
+        {
+            var items2 = items;
+            console.log(JSON.stringify(items2));
+            items2[0].code = num;
+            return items2[0];
+        }).catch(err => console.error(`Failed to find documents: ${err}`))
 }
