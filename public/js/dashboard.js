@@ -21,7 +21,7 @@ const loadChart = (data, ctx) => {
         }]
     };
 
-    var myChart = new Chart(ctx, {
+    var chart = new Chart(ctx, {
         type: 'line',
         data: data,
         options: {
