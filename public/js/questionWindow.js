@@ -19,7 +19,7 @@ ipc.on('newQuestion', (event, question) => {
 
     $(".delete").click((e) => {
         e.preventDefault()
-        console.log("DELETe");
+        console.log("delete");
         ipc.send('deleteQuestion', question)
         ipc.send('deleteQuestionWindow', question)
     })

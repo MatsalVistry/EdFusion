@@ -9,22 +9,25 @@ button {
     font-size: 16px;
     outline: none;
     border-style: none;
-    background-color: #3a3a3a;
     font-family: metropolisbold, sans-serif;
     color: #faf1f1;
 
     transition: 0.25s;
 }
 
-button:hover {
+.mute {
+    background-color: #3a3a3a;
+}
+
+.mute:hover {
     background-color: #3f3f3f;
 }
 
-button:first-of-type {
+.delete {
     background-color: var(--cool_pink);
 }
 
-button:first-of-type:hover {
+.delete:hover {
     background-color: #d32b7c;
 }
 
@@ -39,16 +42,6 @@ button:first-of-type:hover {
 .around{
     height:100vh;
     margin: 0;
-}
-
-.mute:hover{
-    background-color: #87144b;
-    cursor: pointer;
-    
-}
-.delete:hover{
-    background-color: #201f1f;
-    cursor: pointer;
 }
 
 body{
