@@ -40,7 +40,7 @@ app.on('ready', async function () {
     mainWindow.setMenu(null)
 
     mainWindow.loadURL(url.format({
-        pathname: '/public/html/login.html',
+        pathname: path.join(__dirname,'public/html/login.html'),
         protocol: 'file:',
         slashes: true,
     }));
