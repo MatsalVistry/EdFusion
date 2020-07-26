@@ -1,7 +1,27 @@
 @import url('../assets/type/metropolis/metropolis.css');
+body {
+    height: 100vh;
+}
+
+.logo {
+    display: block;
+    width: 260px;
+    margin: 20px auto;
+    position: absolute;
+    top: 0;
+}
+
+.flex-ctr {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    height: 100%;
+}
 
 .main-ctr {
     padding: 0 20%;
+    margin: 0 auto;
 }
 
 .guide {
@@ -11,7 +31,7 @@
     color: var(--deep_purple);
 }
 
-.guide > strong {
+.guide>strong {
     font-family: metropolissemi_bold;
     color: var(--deep_blue);
 }
@@ -25,32 +45,30 @@
 .class_code {
     padding: 20px 0;
     font-family: metropolissemi_bold;
-    font-size: 8vw;
+    font-size: 5em;
     text-align: center;
     color: var(--deep_purple);
 }
 
 button {
     display: block;
-    border: 1.1px solid  var(--deep_purple);
+    border: 1.1px solid var(--deep_purple);
     width: 300px;
     border-radius: 10px;
     padding: 15px 0px;
     margin: 30px auto 10px auto;
-
     font-size: 20px;
     outline: none;
     border-style: none;
     font-family: metropolisbold, sans-serif;
-    background-color:  var(--deep_purple);
+    background-color: var(--deep_purple);
     color: #faf1f1;
-
     cursor: pointer;
     transition: 0.25s;
 }
 
 button:hover {
-    background-color: #632391;   
+    background-color: #632391;
 }
 
 .num-students {
@@ -61,6 +79,6 @@ button:hover {
     margin-top: 40px;
 }
 
-.num-students > strong{
+.num-students>strong {
     font-family: metropolisbold;
 }

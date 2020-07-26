@@ -16,17 +16,36 @@ body {
     background-color: #FEF7F7;
     font-family: metropolisbold, sans-serif;
     position:relative;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.flex-ctr {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    height: 100%;
 }
 
 .logo {
     display: block;
     width: 260px;
     margin: 20px auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
 }
 
 .login-ctr {
     width: min-content;
     margin: 10% auto;
+    padding: 25px;
+    border: 1px solid var(--deep_blue);
+    border-radius: 10px;
+    background-color: var(--bkg_white);
+
 }
 
 .login-inputs>* {
@@ -116,7 +135,7 @@ button:hover {
     z-index: -1;
     width: 300vh;
     height: 300vh;
-    background: #C31D6C;
+    background: var(--deep_blue);
     top: -50vh;
     transform: translateX(-25%) rotate(0deg);
     border-radius: 45%;
@@ -138,5 +157,5 @@ button:hover {
   }
 
   #error{
-      color:red;
+      color:#C31D6C;
   }
