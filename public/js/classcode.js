@@ -12,3 +12,8 @@ ipc.on('code', (event, code) => {
     console.log(code);
     $('.class_code').text(code)
 }); 
+
+ipc.on('updatedStudents', (event, studentCount) => {
+    console.log(studentCount);
+    $(".student-val").text(studentCount)
+})
