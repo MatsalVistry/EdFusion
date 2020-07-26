@@ -82,6 +82,11 @@ app.on('ready', async function () {
     });
 });
 
+ipc.on('sessionAlreadyDone', async function (event) 
+{
+    mainWindow.webContents.send('chartData', alreadySessionMade);
+});
+
 const finalTeacherUpdate = async (collection, query, classID) => {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
