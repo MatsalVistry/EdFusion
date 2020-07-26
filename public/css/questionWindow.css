@@ -1,3 +1,4 @@
+@import url('../assets/type/metropolis/metropolis.css');
 button {
     display: inline;
     border-radius: 10px;
@@ -53,12 +54,14 @@ button:first-of-type:hover {
 body{
     text-align: center;
     height: 100vh;
+    font-family: metropolisbold, sans-serif;
+    color:  #4E39B4;
 }
 
 .question{
     
-    /* transform: translate(-50%, -50%); */
+    transform: translate(-50%, -50%);
     left:50%;
     position: absolute;
-    top: 10px;
+    top: 10%;
 }
