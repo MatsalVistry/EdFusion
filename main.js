@@ -27,6 +27,7 @@ var changeStream = null;
 var codeEnterSession = false;
 var studentsAmount = 0;
 var questionWindow = null;
+var currentQuestionOnWindow = null;
 
 
 app.on('ready', async function () {
@@ -125,13 +126,13 @@ async function getChartData() {
                 var confusionPoint =
                 {
                     "x": counter,
-                    "y": indClass.averageConfusion || 0
+                    "y": indClass.averageConfusion || 50
                 }
                 confusionChart.push(confusionPoint);
                 var ratingPoint =
                 {
                     "x": counter,
-                    "y": indClass.averageRating || 0
+                    "y": indClass.averageRating || 2.5
                 }
                 ratingsChart.push(ratingPoint);
                 var attendancePoint =
@@ -151,10 +152,8 @@ async function getChartData() {
 ipc.on('getRoomCode', async function (event, value) {
     event.preventDefault();
 
-    if(alreadySessionMade)
-    {
-        await MongoClient.connect(uri).then(async function (mongo) 
-        {
+    if (alreadySessionMade) {
+        await MongoClient.connect(uri).then(async function (mongo) {
             console.log("Connected: getRoomCode");
             const collection = mongo.db("edfusion").collection("classrooms");
             const query = { code: classCode };
@@ -167,10 +166,10 @@ ipc.on('getRoomCode', async function (event, value) {
             var doc = await finalTeacherUpdate(collection2, query2, classID);
 
             await collection2.findOneAndReplace
-            (
-                query2,
-                doc
-            ).then(() => {collection.deleteOne(query).catch((err) => console.log(err))})
+                (
+                    query2,
+                    doc
+                ).then(() => { collection.deleteOne(query).catch((err) => console.log(err)) })
             mongo.close()
             console.log("Closed: getRoomCode")
         }).catch((err) => console.log(err))
@@ -217,8 +216,7 @@ ipc.on('endClass', async function (event, value) {
 });
 
 
-const reviewsBuilder = async () => 
-{
+const reviewsBuilder = async () => {
     var reviews = []
     var timeout = 5000;
     setTimeout(async () => {
@@ -227,17 +225,14 @@ const reviewsBuilder = async () =>
             if (ratingsSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
                 const query = { code: classCode };
-                await collection.find(query).toArray().then(items => 
-                {
-                    items[0].reviews.forEach((review)=>
-                    {
-                        if(!reviewSet.has(review))
-                        {
+                await collection.find(query).toArray().then(items => {
+                    items[0].reviews.forEach((review) => {
+                        if (!reviewSet.has(review)) {
                             reviews.push(review);
                             reviewSet.add(review);
                         }
                     })
-                    
+
                 }).catch(err => console.error(`Failed to find documents E: ${err}`))
             }
             mongo.close()
@@ -255,8 +250,7 @@ const reviewsBuilder = async () =>
 const ratingsBuilder = async () => {
     var timeout = 5000;
     setTimeout(async () => {
-        await MongoClient.connect(uri).then(async function (mongo) 
-        {
+        await MongoClient.connect(uri).then(async function (mongo) {
             console.log("Connected: ratingsBuilder");
             if (ratingsSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
@@ -269,7 +263,7 @@ const ratingsBuilder = async () => {
                         totalStudents++;
                     });
                     rateAverage /= totalStudents;
-                    ratings = rateAverage || 0;
+                    ratings = rateAverage || 2.5;
 
                 }).catch(err => console.error(`Failed to find documents F: ${err}`))
                 mongo.close();
@@ -361,7 +355,7 @@ async function updateTeacher() {
             items[0].ratings.forEach((rate) => averageRatings += rate);
             averageRatings /= items[0].ratings.length;
             averageConfusion /= totalStudents;
-            var arr = [averageConfusion||0, averageRatings||0, totalStudents];
+            var arr = [averageConfusion || 50, averageRatings || 2.5, totalStudents||0];
 
 
             const collection2 = mongo.db("edfusion").collection("teachers");
@@ -396,6 +390,13 @@ async function getUpdatedTeacher(collection, query, arr, cid) {
 
 
 ipc.on('deleteQuestion', async function (event, question) {
+    if(currentQuestionOnWindow && (currentQuestionOnWindow==question))
+    {
+        mainWindow.webContents.send('removeQuestion', question);
+        currentQuestionOnWindow = null;
+        questionWindow.destroy();
+        questionWindow = null;
+    }
     addStatus = false;
     questions.delete(question);
     event.preventDefault();
@@ -434,31 +435,50 @@ async function getUpdatedDocument(collection, query, question) {
     }).catch(err => console.error(`Failed to find documents I: ${err}`))
 }
 
+const unmuteAll =async(collection,query)=>
+{
+    return await collection.find(query).toArray().then(items => 
+    {
+        items2 = items;
+        items2[0].students.forEach((student)=>
+        {
+            student.muted = false;
+        })
+        return items2[0];
+    });
+}
+
 ipc.on('startClass', async function (event, value) {
-    codeEnterSession=false;
+    codeEnterSession = false;
     event.preventDefault();
     mainWindow.loadURL(url.format({
         pathname: '/public/html/classroom.html',
         protocol: 'file:',
         slashes: true,
     })).then(() => {
-        MongoClient.connect(uri, {poolSize: 1}).then(function (mongo) {
-            alreadySessionMade=true;
+        MongoClient.connect(uri, { poolSize: 1 }).then(async function (mongo) {
+            alreadySessionMade = true;
             console.log('Connected: startClass (changestream)');
             inSession = true;
             addStatus = true;
-            ratingsSession=false;
+            ratingsSession = false;
             confusionChartvsTime = [];
             questions = new Set();
             let today = new Date();
 
             confusionChartvsTime.push({
                 "x": (today.getHours() % 12) + ":" + today.getMinutes() + ":" + today.getSeconds(),
-                "y": 0
+                "y": 50
             })
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
+            const query = {code: classCode};
+            var newDoc = await unmuteAll(collection,query)
+            await collection.findOneAndReplace(
+                query,
+                newDoc
+            )
             changeStreamMongo = mongo;
             changeStream = collection.watch();
 
@@ -477,25 +497,37 @@ ipc.on('startClass', async function (event, value) {
                                 if (!questions.has(question)) {
                                     questions.add(question)
                                     mainWindow.webContents.send('newQuestion', question);
+                                    
                                     var n = new Notification({
                                         title: "New Question!",
                                         body: question
-                                    }).show()
-                                    n.onclick = () =>
+                                    })
+                                    n.show()
+                                    
+                                    n.on('click', async (e) => 
                                     {
+                                        currentQuestionOnWindow = question;
+                                        if(questionWindow)
+                                            questionWindow.destroy();
+
                                         questionWindow = new BrowserWindow({
                                             webPreferences: {
                                                 nodeIntegration: true
                                             }
                                         });
-                                    
+
                                         questionWindow.loadURL(url.format({
                                             pathname: '/public/html/questionWindow.html',
                                             protocol: 'file:',
                                             slashes: true,
-                                        }));
-                                        questionWindow.webContents.send('newQuestion', question);
-                                    }
+                                        })).then(() => {
+                                            questionWindow.webContents.send('newQuestion', question);
+                                            questionWindow.on('close',async(e)=>
+                                            {
+                                                currentQuestionOnWindow = null;
+                                            })
+                                        })
+                                    })
                                 }
                             }
                         }
@@ -509,7 +541,11 @@ ipc.on('startClass', async function (event, value) {
 });
 
 ipc.on('deleteQuestionWindow', async function (event, question) {
+    mainWindow.webContents.send('removeQuestion', question);
+    currentQuestionOnWindow = null;
     questionWindow.destroy();
+    questionWindow = null;
+   
 });
 
 async function confusionChartBuilder() {
@@ -533,7 +569,7 @@ async function confusionChartBuilder() {
                     var obj =
                     {
                         "x": (today.getHours() % 12) + ":" + today.getMinutes(),
-                        "y": (confusionAverage) || 0
+                        "y": (confusionAverage) || 50
                     }
                     confusionChartvsTime.push(obj);
 
@@ -560,16 +596,17 @@ async function verifyTeacher(value) {
             const query = { email: value[0], password: value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
-                if (items.length > 0) {
+                if (items.length > 0) 
+                {
                     data = true;
+                    teacherID = items[0]._id;
                 }
                 else
                     data = false;
-                teacherID = items[0]._id;
                 mongo.close()
                 console.log("Closed: verifyTeacher");
                 return data;
-                
+
             }).catch(err => console.error(`Failed to find documents K: ${err}`))
         }).catch(function (err) { })
 }
@@ -611,7 +648,7 @@ async function getRoomCode() {
                     doc
                 ).catch((err) => console.log(err))
                 codeEnterSession = true;
-                studentsAmount=0;
+                studentsAmount = 0;
                 studentsAmountBuilder();
                 mongo.close()
                 console.log("Closed: getRoomCode");
@@ -632,12 +669,10 @@ const studentsAmountBuilder = async () => {
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
             console.log("Connected: studentsAmountBuilder");
-            if(codeEnterSession)
-            {
+            if (codeEnterSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
                 const query = { code: classCode };
-                await collection.find(query).toArray().then(items => 
-                {
+                await collection.find(query).toArray().then(items => {
                     studentsAmount = Object.keys(items[0].students).length;
                 });
             }
