@@ -26,6 +26,7 @@ var changeStreamMongo = null;
 var changeStream = null;
 var codeEnterSession = false;
 var studentsAmount = 0;
+var questionWindow = null;
 
 
 app.on('ready', async function () {
@@ -476,10 +477,25 @@ ipc.on('startClass', async function (event, value) {
                                 if (!questions.has(question)) {
                                     questions.add(question)
                                     mainWindow.webContents.send('newQuestion', question);
-                                    new Notification({
+                                    var n = new Notification({
                                         title: "New Question!",
                                         body: question
                                     }).show()
+                                    n.onclick = () =>
+                                    {
+                                        questionWindow = new BrowserWindow({
+                                            webPreferences: {
+                                                nodeIntegration: true
+                                            }
+                                        });
+                                    
+                                        questionWindow.loadURL(url.format({
+                                            pathname: '/public/html/questionWindow.html',
+                                            protocol: 'file:',
+                                            slashes: true,
+                                        }));
+                                        questionWindow.webContents.send('newQuestion', question);
+                                    }
                                 }
                             }
                         }
@@ -492,6 +508,9 @@ ipc.on('startClass', async function (event, value) {
     });
 });
 
+ipc.on('deleteQuestionWindow', async function (event, question) {
+    questionWindow.destroy();
+});
 
 async function confusionChartBuilder() {
     var timeout = 5000;
