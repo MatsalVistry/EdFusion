@@ -8,10 +8,10 @@ $(document).ready(() => {
 
     $("#end-class").click((e) => {
         e.preventDefault()
+        $('#end-class').prop('disabled', true);
         ipc.send('endClass')
     })
 })
-
 
 ipc.on('mutedArray', (event, array) => {
     array.map(question => {

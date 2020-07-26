@@ -104,10 +104,15 @@ button {
   padding-bottom: 20px;
 }
 
-.tooltip {
-  padding-top: 20px;
-  font-family: metropolisregular;
+.tooltip > .title {
+  padding-top: 70px;
+  font-family: metropolislight;
   color: var(--deep_blue);
+}
+
+.tooltip > .title > strong {
+  font-family: metropolisregular;
+  color: var(--deep_purple);
 }
 
 .hidden {

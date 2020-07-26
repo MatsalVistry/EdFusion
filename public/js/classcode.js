@@ -4,6 +4,7 @@ window.$ = window.jQuery = require('jquery');
 $(document).ready(() => {
     $("#start-class").click((e) => {
         e.preventDefault()
+        $('#start-class').prop('disabled', true);
         ipc.send('startClass')
     })
 })

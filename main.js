@@ -31,7 +31,9 @@ var currentQuestionOnWindow = null;
 
 app.on('ready', async function () {
     mainWindow = new BrowserWindow({
+        width: 1150,
         minWidth: 1050,
+        minHeight: 800,
         webPreferences: {
             nodeIntegration: true
         }
@@ -112,7 +114,7 @@ ipc.on('login_data', async function (event, value) {
     await verifyTeacher(value).then((data) => {
         if (data === true) {
             mainWindow.loadURL(url.format({
-                pathname: '/public/html/dashboard.html',
+                pathname: path.join(__dirname,'/public/html/dashboard.html'),
                 protocol: 'file:',
                 slashes: true,
             })).then(() => {
@@ -122,7 +124,7 @@ ipc.on('login_data', async function (event, value) {
             });
         } else {
             mainWindow.loadURL(url.format({
-                pathname: '/public/html/login.html',
+                pathname: path.join(__dirname,'/public/html/login.html'),
                 protocol: 'file:',
                 slashes: true,
             })).then(() => {
@@ -197,7 +199,7 @@ ipc.on('getRoomCode', async function (event, value) {
         console.log(roomCode);
         if (roomCode) {
             mainWindow.loadURL(url.format({
-                pathname: '/public/html/classcode.html',
+                pathname: path.join(__dirname,'/public/html/classcode.html'),
                 protocol: 'file:',
                 slashes: true,
             })).then(() => {
@@ -217,7 +219,7 @@ ipc.on('endClass', async function (event, value) {
     await updateTeacher();
 
     mainWindow.loadURL(url.format({
-        pathname: '/public/html/dashboard.html',
+        pathname: path.join(__dirname,'/public/html/dashboard.html'),
         protocol: 'file:',
         slashes: true,
     })).then(async () => {
@@ -487,7 +489,7 @@ ipc.on('startClass', async function (event, value) {
     codeEnterSession = false;
     event.preventDefault();
     mainWindow.loadURL(url.format({
-        pathname: '/public/html/classroom.html',
+        pathname: path.join(__dirname,'/public/html/classroom.html'),
         protocol: 'file:',
         slashes: true,
     })).then(() => {
@@ -553,7 +555,7 @@ ipc.on('startClass', async function (event, value) {
                                         questionWindow.setMenu(null)
 
                                         questionWindow.loadURL(url.format({
-                                            pathname: '/public/html/questionWindow.html',
+                                            pathname: path.join(__dirname,'/public/html/questionWindow.html'),
                                             protocol: 'file:',
                                             slashes: true,
                                         })).then(() => {
