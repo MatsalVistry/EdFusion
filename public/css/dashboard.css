@@ -104,6 +104,12 @@ button {
   padding-bottom: 20px;
 }
 
+.tooltip {
+  padding-top: 20px;
+  font-family: metropolisregular;
+  color: var(--deep_blue);
+}
+
 .hidden {
   display: none;
 }

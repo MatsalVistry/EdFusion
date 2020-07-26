@@ -95,6 +95,8 @@ ipc.on('chartData', (event, data) => {
 ipc.on('loadPreviousSessionGraph', (event, data) => {
     const confusionCTX = $('#session-confusion');
     $('.prev-ctr').toggleClass('hidden',false)
+    $('.tooltip').toggleClass('hidden',true)
+
     loadChart(data, confusionCTX, "Time", "Average Confusion", "Session Confusion","#2BEBBD","rgba(43, 235, 189,0.5)")
     console.log(data);
 })

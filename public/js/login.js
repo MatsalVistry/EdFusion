@@ -10,7 +10,6 @@ $(document).ready(() => {
     })
 })
 
-
 ipc.on('login_error', (event, data) => {
     document.getElementById("error").innerHTML = data;
 });
