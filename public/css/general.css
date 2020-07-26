@@ -23,7 +23,7 @@ body {
     margin: 20px auto;
 }
 
-button {
+.button {
     display: block;
     width: 150px;
     border-radius: 10px;
@@ -41,6 +41,6 @@ button {
     transition: 0.25s;
 }
 
-button:hover {
+.button:hover {
     background-color: #860e48;   
 }

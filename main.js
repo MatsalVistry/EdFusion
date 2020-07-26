@@ -32,6 +32,7 @@ var currentQuestionOnWindow = null;
 
 app.on('ready', async function () {
     mainWindow = new BrowserWindow({
+        minWidth: 1050,
         webPreferences: {
             nodeIntegration: true
         }

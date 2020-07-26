@@ -5,6 +5,9 @@ window.$ = window.jQuery = require('jquery');
 let chart;
 
 $(document).ready(() => {
+
+    pushQuestion("hey gamers")
+
     $("#end-class").click((e) => {
         e.preventDefault()
         ipc.send('endClass')
@@ -44,7 +47,6 @@ const pushQuestion = (question) => {
     qDelButton.innerHTML = "Yeet"
     qDelButton.onclick = () => {
         ipc.send('deleteQuestion', question)
-
         qText.remove()
         qDelButton.remove()
         qDiv.remove()
@@ -59,7 +61,7 @@ const pushQuestion = (question) => {
     qDiv.appendChild(qText)
     qDiv.appendChild(qDelButton)
     qDiv.appendChild(qMuteButton)
-    questions.append(qDiv)
+    questions.prepend(qDiv)
 }
 
 const removeQuestion = (question) => {
@@ -94,10 +96,10 @@ const loadChart = (data, ctx) => {
             title: {
                 display: true,
                 text: 'Live Confusion Graph'
-            }
+            },
+            maintainAspectRatio: false
         }
     });
-    chart.canvas.parentNode.style.height = '128px';
 }
 
 const updateChart = (data) => {
