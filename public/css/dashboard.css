@@ -8,13 +8,11 @@ body {
   background-color: #FEF7F7;
 }
 
-#dashbboard{
-  background-color: red;
-
+#dash{
+  margin: 0 200px;
   color: #8039B4;
-  padding-top: 10px;
-
-  padding-bottom: 50px;
+  padding-top: 50px;
+  padding-bottom: 25px;
 }
 
 .graphs {
@@ -22,7 +20,7 @@ body {
   align-content: center;
   /*background-color: red;*/
   padding: 10px 0px;
-  padding-top: 50px;
+  padding-top: 25px;
   padding-bottom: 30px;
 }
 
@@ -47,7 +45,7 @@ button{
 }
 
 #prev{
-  margin: 0 400px;
+  margin: 0 200px;
   padding-top: 50px;
   padding-bottom: 40px;
   color: #8039B4;
@@ -65,18 +63,25 @@ button{
 }
 */
 .stars{
-  /* following margin is aligned with prev*/
-
-  margin: 0 400px;
+  margin: 0 200px;
   display: flex;
   flex-direction: row;
   justify-content: space-around;
+  padding-top: 150px;
+
+  padding-right: 80px;
+
   
+}
+
+.star{
+  padding: 8px;
 }
 
 #review{
   /* following margin is aligned with stars*/
-  margin: 0 400px;
+  
+  margin: 0 200px;
   padding-top: 10px;
   padding-bottom: 10px;
   color: #8039B4;
