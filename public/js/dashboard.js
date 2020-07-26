@@ -86,9 +86,9 @@ ipc.on('chartData', (event, data) => {
     const ratingCTX = $('#ratings');
     const attendanceCTX = $('#attendance');
 
-    loadChart(data[0], confusionCTX, "Sessions", "Confusion", "Confusion","#8039b4","rgba(128, 57, 180,0.5)")
-    loadChart(data[1], ratingCTX, "Sessions", "Ratings", "Ratings","#4E39B4","rgba(78, 57, 180,0.5)")
-    loadChart(data[2], attendanceCTX, "Sessions", "Attendance", "Attendance","#C31D6C","rgba(195, 29, 108,0.5)")
+    loadChart(data[0], confusionCTX, "Sessions", "Confusion", "Lifetime Confusion","#8039b4","rgba(128, 57, 180,0.5)")
+    loadChart(data[1], ratingCTX, "Sessions", "Ratings", "Lifetime Ratings","#4E39B4","rgba(78, 57, 180,0.5)")
+    loadChart(data[2], attendanceCTX, "Sessions", "Attendance", "Lifetime Attendance","#C31D6C","rgba(195, 29, 108,0.5)")
 
 })
 
