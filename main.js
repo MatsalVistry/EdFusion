@@ -68,6 +68,12 @@ app.on('ready', async function () {
                     ).catch(err => console.error(`Failed to find documents A: ${err}`))
                 }).catch((err) => console.error(`Failed to find documents B: ${err}`))
             }
+            if(classCode!=0)
+            {
+                collection.deleteOne(
+                    query
+                ).catch(err => console.error(`Failed to find documents AA: ${err}`))
+            }
             mongo.close()
         }).catch(() => {
             app.exit(0)
@@ -274,6 +280,7 @@ const ratingsBuilder = async () => {
 
         if (ratingsSession) {
             mainWindow.webContents.send('updatedRatings', ratings);
+            console.log(ratings);
             ratingsBuilder();
         }
     }, timeout)
