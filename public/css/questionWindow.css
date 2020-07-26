@@ -29,11 +29,15 @@ button:first-of-type:hover {
 
 .buttonContainer{
     margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .around{
-    display: flex;
-    justify-content: center;
+    height:100vh;
+    margin: 0;
 }
 
 .mute:hover{
@@ -48,4 +52,13 @@ button:first-of-type:hover {
 
 body{
     text-align: center;
+    height: 100vh;
+}
+
+.question{
+    
+    /* transform: translate(-50%, -50%); */
+    left:50%;
+    position: absolute;
+    top: 10px;
 }
