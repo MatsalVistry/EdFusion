@@ -68,8 +68,7 @@ app.on('ready', async function () {
                     ).catch(err => console.error(`Failed to find documents A: ${err}`))
                 }).catch((err) => console.error(`Failed to find documents B: ${err}`))
             }
-            if(classCode!=0)
-            {
+            if (classCode != 0) {
                 collection.deleteOne(
                     query
                 ).catch(err => console.error(`Failed to find documents AA: ${err}`))
@@ -86,15 +85,14 @@ app.on('ready', async function () {
 const finalTeacherUpdate = async (collection, query, classID) => {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
-        if(items2)
-        {
-        items2[0].code = 0;
-        items2[0].statistics.forEach((stat) => {
-            if ((stat && stat.classroomID && classID) && stat.classroomID.toString() == classID.toString()) {
-                stat.averageRating = ratings;
-            }
-        });
-    }
+        if (items2) {
+            items2[0].code = 0;
+            items2[0].statistics.forEach((stat) => {
+                if ((stat && stat.classroomID && classID) && stat.classroomID.toString() == classID.toString()) {
+                    stat.averageRating = ratings;
+                }
+            });
+        }
         return items2[0];
     }).catch(err => console.error(`Failed to find documents C: ${err}`))
 }
@@ -118,7 +116,7 @@ ipc.on('login_data', async function (event, value) {
                 protocol: 'file:',
                 slashes: true,
             })).then(() => {
-                mainWindow.webContents.send('login_error', "Incorrect credentials.");              
+                mainWindow.webContents.send('login_error', "Incorrect credentials.");
             });
         }
     });
@@ -289,41 +287,34 @@ const ratingsBuilder = async () => {
 ipc.on('mutePerson', async function (event, question) {
     event.preventDefault();
     await mutePerson(question).then(async () => { });
-    var arr = await  mutePersonQuestions(question);
+    var arr = await mutePersonQuestions(question);
     console.log(arr);
     mainWindow.webContents.send('mutedArray', arr);
 
 });
 
-async function mutePersonQuestions(q)
-{
-    return await MongoClient.connect(uri).then(async function (mongo) 
-    {
+async function mutePersonQuestions(q) {
+    return await MongoClient.connect(uri).then(async function (mongo) {
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { "code": classCode };
         var questionsArr = []
-        await collection.find(query).toArray().then(items => 
-        {
+        await collection.find(query).toArray().then(items => {
             var studentID = null;
-            items[0].questions.forEach((quest)=>
-            {
-                if(quest.question.toString()==q.toString())
-                {
-                    studentID=quest.student_id;
+            items[0].questions.forEach((quest) => {
+                if (quest.question.toString() == q.toString()) {
+                    studentID = quest.student_id;
                 }
             })
-            items[0].questions.forEach((quest)=>
-            {
-                if(quest.student_id.toString()==studentID.toString())
-                {
+            items[0].questions.forEach((quest) => {
+                if (quest.student_id.toString() == studentID.toString()) {
                     questionsArr.push(quest.question);
                 }
             })
         }).catch(err => console.error(`Failed to find documents G: ${err}`))
         mongo.close()
         return questionsArr;
-    }).catch((err)=>{console.log(err)});
+    }).catch((err) => { console.log(err) });
 }
 
 async function mutePerson(question) {
@@ -391,7 +382,7 @@ async function updateTeacher() {
             items[0].ratings.forEach((rate) => averageRatings += rate);
             averageRatings /= items[0].ratings.length;
             averageConfusion /= totalStudents;
-            var arr = [averageConfusion || 50, averageRatings || 2.5, totalStudents||0];
+            var arr = [averageConfusion || 50, averageRatings || 2.5, totalStudents || 0];
 
 
             const collection2 = mongo.db("edfusion").collection("teachers");
@@ -425,8 +416,7 @@ async function getUpdatedTeacher(collection, query, arr, cid) {
 
 
 ipc.on('deleteQuestion', async function (event, question) {
-    if(currentQuestionOnWindow && (currentQuestionOnWindow==question))
-    {
+    if (currentQuestionOnWindow && (currentQuestionOnWindow == question)) {
         mainWindow.webContents.send('removeQuestion', question);
         currentQuestionOnWindow = null;
         questionWindow.destroy();
@@ -468,13 +458,15 @@ async function getUpdatedDocument(collection, query, question) {
     }).catch(err => console.error(`Failed to find documents I: ${err}`))
 }
 
-const unmuteAll =async(collection,query)=>
-{
-    return await collection.find(query).toArray().then(items => 
-    {
+const unmuteAll = async (collection, query) => {
+
+    const update = { $set: { "started": true } }
+    await collection.updateOne(query, update).catch(err => {
+        console.log(err);
+    })
+    return await collection.find(query).toArray().then(items => {
         items2 = items;
-        items2[0].students.forEach((student)=>
-        {
+        items2[0].students.forEach((student) => {
             student.muted = false;
         })
         return items2[0];
@@ -505,8 +497,8 @@ ipc.on('startClass', async function (event, value) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
-            const query = {"code": classCode};
-            var newDoc = await unmuteAll(collection,query)
+            const query = { "code": classCode };
+            var newDoc = await unmuteAll(collection, query)
             await collection.findOneAndReplace(
                 query,
                 newDoc
@@ -516,7 +508,7 @@ ipc.on('startClass', async function (event, value) {
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
-                    const query = {"_id": change.documentKey._id }
+                    const query = { "_id": change.documentKey._id }
                     collection.findOne(query).then((res) => {
                         if (res && (res.code == classCode)) {
                             let questionsArr = null;
@@ -529,17 +521,16 @@ ipc.on('startClass', async function (event, value) {
                                 if (!questions.has(question)) {
                                     questions.add(question)
                                     mainWindow.webContents.send('newQuestion', question);
-                                    
+
                                     var n = new Notification({
                                         title: "New Question!",
                                         body: question
                                     })
                                     n.show()
-                                    
-                                    n.on('click', async (e) => 
-                                    {
+
+                                    n.on('click', async (e) => {
                                         currentQuestionOnWindow = question;
-                                        if(questionWindow)
+                                        if (questionWindow)
                                             questionWindow.destroy();
 
                                         questionWindow = new BrowserWindow({
@@ -554,8 +545,7 @@ ipc.on('startClass', async function (event, value) {
                                             slashes: true,
                                         })).then(() => {
                                             questionWindow.webContents.send('newQuestion', question);
-                                            questionWindow.on('close',async(e)=>
-                                            {
+                                            questionWindow.on('close', async (e) => {
                                                 currentQuestionOnWindow = null;
                                             })
                                         })
@@ -577,7 +567,7 @@ ipc.on('deleteQuestionWindow', async function (event, question) {
     currentQuestionOnWindow = null;
     questionWindow.destroy();
     questionWindow = null;
-   
+
 });
 
 async function confusionChartBuilder() {
@@ -625,8 +615,7 @@ async function verifyTeacher(value) {
             const query = { "email": value[0], "password": value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
-                if (items.length > 0) 
-                {
+                if (items.length > 0) {
                     data = true;
                     teacherID = items[0]._id;
                 }
@@ -660,6 +649,7 @@ async function getRoomCode() {
                             "code": num,
                             "teacherID": teacherID,
                             "finished": false,
+                            "started": false,
                             "students": [],
                             "questions": [],
                             "ratings": [],

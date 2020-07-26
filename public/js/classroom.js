@@ -6,11 +6,16 @@ let chart;
 
 $(document).ready(() => {
 
-    pushQuestion("hey gamers")
-
     $("#end-class").click((e) => {
         e.preventDefault()
         ipc.send('endClass')
+    })
+})
+
+
+ipc.on('mutedArray', (event, array) => {
+    array.map(question => {
+        toggleMute(question)
     })
 })
 
@@ -34,6 +39,39 @@ ipc.on('updatedSessionChart', (event, data) => {
     }
 })
 
+const toggleMute = (question) => {
+    console.log("togglemute");
+    let index;
+    const questions = document.querySelectorAll(".questionCard > p");
+    for (var i = 0; i < questions.length; i++) {
+        if (questions[i].innerHTML == question) {
+            index = i
+        }
+    }
+
+    console.log("INDEX : " + index)
+    console.log(document.querySelectorAll(".muteButton"))
+    console.log("ELEMENT SPECIFIC");
+    console.log(document.querySelectorAll(".muteButton")[index])
+
+    const button = document.querySelectorAll(".muteButton")[index];
+
+    muted = button.classList[1] == "true"
+
+    if (muted) {
+        button.innerHTML = "Mute"
+
+        button.classList.remove("true")
+        button.classList.add("false")
+
+    } else {
+        button.innerHTML = "Unmute"
+
+        button.classList.remove("false")
+        button.classList.add("true")
+    }
+}
+
 const pushQuestion = (question) => {
     let questions = document.querySelector(".questions");
 
@@ -54,28 +92,11 @@ const pushQuestion = (question) => {
 
     let qMuteButton = document.createElement('button')
     qMuteButton.innerHTML = "Mute"
-
+    qMuteButton.className = "muteButton"
     qMuteButton.classList.add("false")
 
     qMuteButton.onclick = () => {
         ipc.send('mutePerson', question)
-
-        muted = qMuteButton.classList[0] == "true"
-
-
-        if(muted) {
-            qMuteButton.innerHTML = "Mute"
-            
-            qMuteButton.classList.remove("true")
-            qMuteButton.classList.add("false")
-
-        } else {
-            qMuteButton.innerHTML = "Unmute"
-
-            qMuteButton.classList.remove("false")
-            qMuteButton.classList.add("true")
-        }
-
     }
 
     let rightDiv = document.createElement("div")
@@ -93,7 +114,7 @@ const removeQuestion = (question) => {
     let index;
     const questions = document.querySelectorAll(".questionCard > p");
     for (var i = 0; i < questions.length; i++) {
-        if(questions[i].innerHTML == question) {
+        if (questions[i].innerHTML == question) {
             index = i
         }
     }

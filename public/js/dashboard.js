@@ -8,6 +8,7 @@ $(document).ready(() => {
         $("#create-classroom").prop('disabled', true)
         ipc.send('getRoomCode')
     })
+    colorStars(3)
 })
 
 
@@ -87,8 +88,12 @@ ipc.on('updatedReviews', (event, data) => {
 })
 
 const colorStars = (index) => {
-    for(let i = 1;  i<=index; i++){
-        document.getElementById("star"+i).src = "../assets/Icon_material-star.svg";
+    for(let i = 1;  i<=5; i++){
+        if(i<=index) {
+            document.getElementById("star"+i).src = "../assets/Icon_material-star.svg";
+        } else {
+            document.getElementById("star"+i).src = "../assets/Icon_material-star-border.svg";
+        }
         console.log(document.getElementById("star"+i).src)
     }
 }

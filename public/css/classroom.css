@@ -1,4 +1,5 @@
 @import url('../assets/type/metropolis/metropolis.css');
+
 :root {
     --bkg_white: #FEF7F7;
     --deep_purple: #8039b4;
@@ -8,6 +9,12 @@
 
 body {
     background-color: var(--bkg_white);
+}
+
+.logo {
+    display: block;
+    width: 260px;
+    margin: 20px auto;
 }
 
 .main-ctr {
