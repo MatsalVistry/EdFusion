@@ -27,6 +27,7 @@ var changeStream = null;
 var codeEnterSession = false;
 var studentsAmount = 0;
 var questionWindow = null;
+var currentQuestionOnWindow = null;
 
 
 app.on('ready', async function () {
@@ -476,6 +477,10 @@ ipc.on('startClass', async function (event, value) {
                                     })
                                     n.show()
                                     n.on('click', async (e) => {
+                                        currentQuestionOnWindow=question;
+                                        if(questionWindow)
+                                            questionWindow.destroy();
+
                                         questionWindow = new BrowserWindow({
                                             webPreferences: {
                                                 nodeIntegration: true
@@ -505,6 +510,8 @@ ipc.on('startClass', async function (event, value) {
 ipc.on('deleteQuestionWindow', async function (event, question) {
     mainWindow.webContents.send('removeQuestion', question);
     questionWindow.destroy();
+    currentQuestionOnWindow = null;
+    questionWindow=null;
 });
 
 async function confusionChartBuilder() {
