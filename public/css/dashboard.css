@@ -8,9 +8,22 @@ body {
   background-color: #FEF7F7;
 }
 
+#dashbboard{
+  background-color: red;
+
+  color: #8039B4;
+  padding-top: 10px;
+
+  padding-bottom: 50px;
+}
+
 .graphs {
   display: flex;
   align-content: center;
+  /*background-color: red;*/
+  padding: 10px 0px;
+  padding-top: 50px;
+  padding-bottom: 30px;
 }
 
 canvas
@@ -19,4 +32,54 @@ canvas
 }
 .secondDivHolder{
   display: flex;
+}
+
+button{
+  border: 1.1px solid #8039B4;
+  width: 300px;
+  border-radius: 10px;
+  padding: 10px 0px;
+  margin: 0 500px;
+
+  background-color: #8039B4;
+  color: white;
+
+}
+
+#prev{
+  margin: 0 400px;
+  padding-top: 50px;
+  padding-bottom: 40px;
+  color: #8039B4;
+  font-size: 1.8em;
+
+}
+
+/*
+.flexbox-container {
+  display: flex;
+  flex-direction: row;
+  
+  gap: 12px;
+ 
+}
+*/
+.stars{
+  /* following margin is aligned with prev*/
+
+  margin: 0 400px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  
+}
+
+#review{
+  /* following margin is aligned with stars*/
+  margin: 0 400px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: #8039B4;
+  font-size: 1.8em;
+
 }
