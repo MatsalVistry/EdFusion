@@ -136,3 +136,7 @@ button:hover {
       background: #1b0a28;
     }
   }
+
+  #error{
+      color:red;
+  }
