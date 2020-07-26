@@ -22,6 +22,8 @@ var ratingsSession = null;
 var confusionChartvsTime = [];
 var reviewSet = new Set();
 var alreadySessionMade = false;
+var changeStreamMongo = null;
+var changeStream = null;
 
 
 app.on('ready', async function () {
@@ -42,6 +44,7 @@ app.on('ready', async function () {
     mainWindow.on('close', async (e) => {
         e.preventDefault();
         MongoClient.connect(uri).then(async function (mongo) {
+            console.log("Connected: CLOSE")
             const collection = mongo.db("edfusion").collection("classrooms");
             const query = { code: classCode };
             const collection2 = mongo.db("edfusion").collection("teachers");
@@ -59,14 +62,16 @@ app.on('ready', async function () {
                 ).then(() => {
                     collection.deleteOne(
                         query
-                    ).catch(err => console.error(`Failed to find documents: ${err}`)).then(() => {
-                        app.exit(0)
-                    })
-                }).catch((err) => console.log(err))
+                    ).catch(err => console.error(`Failed to find documents A: ${err}`))
+                }).catch((err) => console.error(`Failed to find documents B: ${err}`))
             }
-            else
-                app.exit(0);
-        }).catch((err) => console.log(err))
+            mongo.close()
+            console.log("Closed: CLOSE");
+        }).catch(() => {
+            app.exit(0)
+        }).finally(() => {
+            app.exit(0)
+        })
     });
 });
 
@@ -80,7 +85,7 @@ const finalTeacherUpdate = async (collection, query, classID) => {
             }
         });
         return items2[0];
-    }).catch(err => console.error(`Failed to find documents: ${err}`))
+    }).catch(err => console.error(`Failed to find documents C: ${err}`))
 
 }
 
@@ -103,6 +108,7 @@ ipc.on('login_data', async function (event, value) {
 
 async function getChartData() {
     return await MongoClient.connect(uri).then(async function (mongo) {
+        console.log("Connected: getChartData")
         const collection = mongo.db("edfusion").collection("teachers");
         const query = { _id: teacherID };
         return await collection.find(query).toArray().then(items => {
@@ -132,8 +138,10 @@ async function getChartData() {
                 }
                 attendanceChart.push(attendancePoint);
             });
+            mongo.close()
+            console.log("Closed: getChartData")
             return [confusionChart, ratingsChart, attendanceChart];
-        }).catch(err => console.error(`Failed to find documents: ${err}`))
+        }).catch(err => console.error(`Failed to find documents D: ${err}`))
     }).catch(err => console.log(err))
 };
 
@@ -144,6 +152,7 @@ ipc.on('getRoomCode', async function (event, value) {
     {
         await MongoClient.connect(uri).then(async function (mongo) 
         {
+            console.log("Connected: getRoomCode");
             const collection = mongo.db("edfusion").collection("classrooms");
             const query = { code: classCode };
             const collection2 = mongo.db("edfusion").collection("teachers");
@@ -159,6 +168,8 @@ ipc.on('getRoomCode', async function (event, value) {
                 query2,
                 doc
             ).then(() => {collection.deleteOne(query).catch((err) => console.log(err))})
+            mongo.close()
+            console.log("Closed: getRoomCode")
         }).catch((err) => console.log(err))
     }
 
@@ -178,6 +189,9 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('endClass', async function (event, value) {
     event.preventDefault();
+    changeStreamMongo.close();
+    changeStream.close();
+    console.log("mongostreamchange closed");
     inSession = false;
     reviewSet = new Set();
     await updateClassroom();
@@ -206,6 +220,7 @@ const reviewsBuilder = async () =>
     var timeout = 5000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
+            console.log("Connected: reviewsBuilder");
             if (ratingsSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
                 const query = { code: classCode };
@@ -219,12 +234,15 @@ const reviewsBuilder = async () =>
                             reviewSet.add(review);
                         }
                     })
-                }).catch(err => console.error(`Failed to find documents: ${err}`))
+                    
+                }).catch(err => console.error(`Failed to find documents E: ${err}`))
             }
+            mongo.close()
+            console.log("Closed: reviewsBuilder");
         });
 
         if (ratingsSession) {
-            console.log(reviews);
+            // console.log(reviews);
             mainWindow.webContents.send('updatedReviews', reviews);
             reviewsBuilder();
         }
@@ -235,6 +253,7 @@ const ratingsBuilder = async () => {
     var timeout = 5000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
+            console.log("Connected: ratingsBuilder");
             if (ratingsSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
                 const query = { code: classCode };
@@ -248,8 +267,10 @@ const ratingsBuilder = async () => {
                     rateAverage /= totalStudents;
                     ratings = rateAverage || 0;
 
-                }).catch(err => console.error(`Failed to find documents: ${err}`))
+                }).catch(err => console.error(`Failed to find documents F: ${err}`))
             }
+            mongo.close()
+            console.log("Closed: ratingsBuilder");
         });
 
         if (ratingsSession) {
@@ -266,7 +287,7 @@ ipc.on('mutePerson', async function (event, question) {
 
 async function mutePerson(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected...');
+        console.log('Connected: mutePerson');
 
         const collection = mongo.db("edfusion").collection("classrooms");
 
@@ -277,11 +298,12 @@ async function mutePerson(question) {
             query,
             doc
         ).catch((err) => console.log(err))
+        mongo.close()
+        console.log("Closed: mutePerson");
     }).catch(function (err) { })
 }
 
 async function muteHelper(collection, query, question) {
-
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
         var studentID = null;
@@ -295,31 +317,33 @@ async function muteHelper(collection, query, question) {
                 student.muted = !student.muted;
         })
         return items2[0];
-    }).catch(err => console.error(`Failed to find documents: ${err}`))
+    }).catch(err => console.error(`Failed to find documents G: ${err}`))
 }
 
 async function updateClassroom() {
-    return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected...');
+    await MongoClient.connect(uri).then(async function (mongo) {
+        console.log('Connected: updateClassroom');
 
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { code: classCode };
         const update = { $set: { "finished": true } }
-        return await collection.updateOne(query, update).catch(err => {
+        await collection.updateOne(query, update).catch(err => {
             console.log(err);
         })
+        mongo.close()
+        console.log("Closed: updateClassroom");
     })
 }
 
 async function updateTeacher() {
-    return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected...');
+    await MongoClient.connect(uri).then(async function (mongo) {
+        console.log('Connected: updateTeacher');
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { code: classCode };
         var data = null;
-        return await collection.find(query).toArray().then(async (items) => {
+        await collection.find(query).toArray().then(async (items) => {
             var totalStudents = 0;
             var averageConfusion = 0;
             var averageRatings = 0;
@@ -342,8 +366,9 @@ async function updateTeacher() {
                 query2,
                 doc
             ).catch((err) => console.log(err))
-        }).catch(err => console.error(`Failed to find documents: ${err}`))
-
+            mongo.close()
+            console.log("Closed: updateTeacher");
+        }).catch(err => console.error(`Failed to find documents H: ${err}`))
     }).catch(function (err) { })
 }
 
@@ -359,7 +384,7 @@ async function getUpdatedTeacher(collection, query, arr, cid) {
         }
         items2[0].statistics.push(obj);
         return items2[0];
-    }).catch(err => console.error(`Failed to find documents: ${err}`))
+    }).catch(err => console.error(`Failed to find documents: 6${err}`))
 }
 
 
@@ -375,7 +400,7 @@ ipc.on('deleteQuestion', async function (event, question) {
 
 async function deleteQuestion(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected...');
+        console.log('Connected: deleteQuestion');
         const collection = mongo.db("edfusion").collection("classrooms");
 
         const query = { code: classCode };
@@ -385,6 +410,8 @@ async function deleteQuestion(question) {
             query,
             doc
         ).catch((err) => console.log(err))
+        mongo.close()
+        console.log("Closed: deleteQuestion");
     }).catch(function (err) { })
 }
 
@@ -398,7 +425,7 @@ async function getUpdatedDocument(collection, query, question) {
         items2[0].questions = questionsArr;
 
         return items2[0];
-    }).catch(err => console.error(`Failed to find documents: ${err}`))
+    }).catch(err => console.error(`Failed to find documents I: ${err}`))
 }
 
 ipc.on('startClass', async function (event, value) {
@@ -408,11 +435,9 @@ ipc.on('startClass', async function (event, value) {
         protocol: 'file:',
         slashes: true,
     })).then(() => {
-
-
-        MongoClient.connect(uri).then(function (mongo) {
+        MongoClient.connect(uri, {poolSize: 1}).then(function (mongo) {
             alreadySessionMade=true;
-            console.log('Connected...');
+            console.log('Connected: startClass (changestream)');
             inSession = true;
             addStatus = true;
             ratingsSession=false;
@@ -427,11 +452,11 @@ ipc.on('startClass', async function (event, value) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
-            var changeStream = collection.watch();
+            changeStreamMongo = mongo;
+            changeStream = collection.watch();
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
-                    console.log(change)
                     const query = { _id: change.documentKey._id }
                     collection.findOne(query).then((res) => {
                         if (res && (res.code == classCode)) {
@@ -466,6 +491,7 @@ async function confusionChartBuilder() {
     var timeout = 5000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
+            console.log("Connected: confusionChartBuilder");
             if (inSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
                 const query = { code: classCode };
@@ -486,10 +512,11 @@ async function confusionChartBuilder() {
                     }
                     confusionChartvsTime.push(obj);
 
-                }).catch(err => console.error(`Failed to find documents: ${err}`))
+                }).catch(err => console.error(`Failed to find documents J: ${err}`))
             }
+            mongo.close()
+            console.log("Closed: confusionChartBuilder");
         });
-
         if (inSession) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
@@ -501,7 +528,7 @@ async function confusionChartBuilder() {
 async function verifyTeacher(value) {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
-            console.log('Connected...');
+            console.log('Connected: verifyTeacher');
 
             const collection = mongo.db("edfusion").collection("teachers");
 
@@ -514,17 +541,18 @@ async function verifyTeacher(value) {
                 else
                     data = false;
                 teacherID = items[0]._id;
+                mongo.close()
+                console.log("Closed: verifyTeacher");
                 return data;
-            }).catch(err => console.error(`Failed to find documents: ${err}`))
-
-
+                
+            }).catch(err => console.error(`Failed to find documents K: ${err}`))
         }).catch(function (err) { })
 }
 
 async function getRoomCode() {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
-            console.log('Connected...');
+            console.log('Connected: getRoomCode');
             const collection = mongo.db("edfusion").collection("classrooms");
 
             const query = {};
@@ -558,8 +586,10 @@ async function getRoomCode() {
                     query2,
                     doc
                 ).catch((err) => console.log(err))
+                mongo.close()
+                console.log("Closed: getRoomCode");
                 return num;
-            }).catch(err => console.error(`Failed to find documents: ${err}`))
+            }).catch(err => console.error(`Failed to find documents L: ${err}`))
         }).catch(function (err) { })
 }
 async function updateTeacherCode(collection, query, num) {
@@ -567,5 +597,5 @@ async function updateTeacherCode(collection, query, num) {
         var items2 = items;
         items2[0].code = num;
         return items2[0];
-    }).catch(err => console.error(`Failed to find documents: ${err}`))
+    }).catch(err => console.error(`Failed to find documents M: ${err}`))
 }
