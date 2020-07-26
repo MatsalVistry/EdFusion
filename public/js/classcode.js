@@ -8,6 +8,7 @@ $(document).ready(() => {
     })
 })
 
+
 ipc.on('code', (event, code) => {
     console.log(code);
     $('.class_code').text(code)

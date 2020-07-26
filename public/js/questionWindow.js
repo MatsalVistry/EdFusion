@@ -5,6 +5,7 @@ $(document).ready(() => {
     console.log("doc loaded")
 })
 
+
 ipc.on('newQuestion', (event, question) => {
     console.log("QUESTION" + question)
     $('.question').text(question)

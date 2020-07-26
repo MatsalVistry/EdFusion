@@ -19,30 +19,22 @@
             <h2 class="title">Dashboard</h2>
             <button class="button" id="create-classroom">Start class</button>
         </div>
-    </div>
+        <div class="graphs">
+            <div class="canvasDiv">
+                <canvas id="confusion"></canvas>
+            </div>
     
-
-    <div class="graphs">
-        <div class="canvasDiv">
-            <canvas id="confusion"></canvas>
-        </div>
-
-        <div class="canvasDiv">
-            <canvas id="ratings"></canvas>
-        </div>
-
-        <div class="canvasDiv">
-            <canvas id="attendance"></canvas>
-        </div>
-    </div>
-
-    <div class="main">
-        <div id="prev">Your previous session</div>
-
-    </div>
-    <div class="secondDivHolder">
-        <div class="flexbox-container">
-
+            <div class="canvasDiv">
+                <canvas id="ratings"></canvas>
+            </div>
+    
+            <div class="canvasDiv">
+                <canvas id="attendance"></canvas>
+            </div>
+        </div>        
+        <div class="prev-ctr hidden">
+            <h2 class="title session_title">Your previous session</h2>
+            <h3 class="avg-rating">Average Rating: </h3>
             <div class="stars">
                 <div class="star"><img id="star1" src="../assets/Icon_material-star-border.svg"></div>
                 <div class="star"><img id="star2" src="../assets/Icon_material-star-border.svg"></div>
@@ -50,17 +42,15 @@
                 <div class="star"><img id="star4" src="../assets/Icon_material-star-border.svg"></div>
                 <div class="star"><img id="star5" src="../assets/Icon_material-star-border.svg"></div>
             </div>
+            <h3 class="confusion-label">Confusion graph: </h3>
+            <div class="graphs">
+                <canvas id="session-confusion" width="400" height="400"></canvas>
+            </div>
+            <h3 class="reviews-label">Reviews: </h3>
+            <div class="reviews">
 
+            </div>
         </div>
-
-        <div class="graphs">
-            <canvas id="session-confusion" width="400" height="400"></canvas>
-        </div>
-
-    </div>
-    <div class="reviews">
-        <div id="review">Reviews</div>
-
     </div>
 </body>
 

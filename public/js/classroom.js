@@ -82,7 +82,7 @@ const pushQuestion = (question) => {
     qText.innerHTML = question
 
     let qDelButton = document.createElement('button')
-    qDelButton.innerHTML = "Yeet"
+    qDelButton.innerHTML = "Resolve"
     qDelButton.onclick = () => {
         ipc.send('deleteQuestion', question)
         qText.remove()

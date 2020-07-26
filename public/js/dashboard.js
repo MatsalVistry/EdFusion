@@ -7,12 +7,24 @@ $(document).ready(() => {
         e.preventDefault()
         $("#create-classroom").prop('disabled', true)
         ipc.send('getRoomCode')
+        setWidth = (window.innerWidth - (window.innerWidth * 0.4)) / 3
+        console.log(setWidth);
+        $(".canvasDiv").width(setWidth);
     })
+
+    setWidth = (window.innerWidth - (window.innerWidth * 0.4)) / 3
+    $(".canvasDiv").width(Math.floor(setWidth))
+    $(".canvasDiv").height(Math.floor(setWidth))
+
+    $(window).resize(function () {
+        setWidth = (window.innerWidth - (window.innerWidth * 0.4)) / 3
+        $(".canvasDiv").width(Math.floor(setWidth))
+        $(".canvasDiv").height(Math.floor(setWidth))
+    });
     colorStars(3)
 })
 
-
-const loadChart = (data, ctx,xAxisLabel,yAxisLabel, title) => {
+const loadChart = (data, ctx, xAxisLabel, yAxisLabel, title, border, backgroundColor) => {
 
     var data = {
         labels: data.map(point => point.x),
@@ -22,27 +34,37 @@ const loadChart = (data, ctx,xAxisLabel,yAxisLabel, title) => {
         }]
     };
 
+    data.datasets[0].borderColor = border
+    data.datasets[0].backgroundColor = backgroundColor
+
     new Chart(ctx, {
         type: 'line',
         data: data,
         options: {
-            responsive:true,
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: title
+            },
+            responsive: true,
             maintainAspectRatio: false,
             scales: {
                 yAxes: [{
-                  scaleLabel: {
-                    display: true,
-                    labelString: yAxisLabel
-                  }
+                    scaleLabel: {
+                        display: true,
+                        labelString: yAxisLabel
+                    }
                 }],
                 xAxes: [{
                     scaleLabel: {
-                      display: true,
-                      labelString: xAxisLabel
+                        display: true,
+                        labelString: xAxisLabel
                     }
-                  }]
-              }     
-        }, 
+                }]
+            }
+        },
     });
 }
 
@@ -56,7 +78,7 @@ const pushReview = (rev) => {
     qText.innerHTML = rev
 
     qDiv.appendChild(qText)
-    reviews.append(qDiv)
+    reviews.prepend(qDiv)
 }
 
 ipc.on('chartData', (event, data) => {
@@ -64,15 +86,16 @@ ipc.on('chartData', (event, data) => {
     const ratingCTX = $('#ratings');
     const attendanceCTX = $('#attendance');
 
-    loadChart(data[0], confusionCTX,"Sessions","Confusion","Confusion vs Sessions")
-    loadChart(data[1], ratingCTX,"Sessions","Ratings","Ratings vs Sessions")
-    loadChart(data[2], attendanceCTX,"Sessions","Attendance","Attendance vs Sessions")
+    loadChart(data[0], confusionCTX, "Sessions", "Confusion", "Confusion","#8039b4","rgba(128, 57, 180,0.5)")
+    loadChart(data[1], ratingCTX, "Sessions", "Ratings", "Ratings","#4E39B4","rgba(78, 57, 180,0.5)")
+    loadChart(data[2], attendanceCTX, "Sessions", "Attendance", "Attendance","#C31D6C","rgba(195, 29, 108,0.5)")
 
 })
 
 ipc.on('loadPreviousSessionGraph', (event, data) => {
     const confusionCTX = $('#session-confusion');
-    loadChart(data, confusionCTX)
+    $('.prev-ctr').toggleClass('hidden',false)
+    loadChart(data, confusionCTX, "Time", "Average Confusion", "Session Confusion","#2BEBBD","rgba(43, 235, 189,0.5)")
     console.log(data);
 })
 
@@ -88,12 +111,12 @@ ipc.on('updatedReviews', (event, data) => {
 })
 
 const colorStars = (index) => {
-    for(let i = 1;  i<=5; i++){
-        if(i<=index) {
-            document.getElementById("star"+i).src = "../assets/Icon_material-star.svg";
+    for (let i = 1; i <= 5; i++) {
+        if (i <= index) {
+            document.getElementById("star" + i).src = "../assets/Icon_material-star.svg";
         } else {
-            document.getElementById("star"+i).src = "../assets/Icon_material-star-border.svg";
+            document.getElementById("star" + i).src = "../assets/Icon_material-star-border.svg";
         }
-        console.log(document.getElementById("star"+i).src)
+        console.log(document.getElementById("star" + i).src)
     }
 }

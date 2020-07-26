@@ -37,13 +37,18 @@ app.on('ready', async function () {
         }
     });
 
+    mainWindow.setMenu(null)
+
     mainWindow.loadURL(url.format({
         pathname: '/public/html/login.html',
         protocol: 'file:',
         slashes: true,
     }));
 
-    mainWindow.webContents.openDevTools() //TODO remove on prod
+
+    mainWindow.on('will-navigate', async (e) => {
+        e.preventDefault();
+    })
 
     mainWindow.on('close', async (e) => {
         e.preventDefault();
@@ -544,6 +549,8 @@ ipc.on('startClass', async function (event, value) {
                                                 nodeIntegration: true
                                             }
                                         });
+
+                                        questionWindow.setMenu(null)
 
                                         questionWindow.loadURL(url.format({
                                             pathname: '/public/html/questionWindow.html',

@@ -1,10 +1,9 @@
 @import url('../assets/type/metropolis/metropolis.css');
-
 :root {
-    --bkg_white: #FEF7F7;
-    --deep_purple: #8039b4;
-    --deep_blue: #4E39B4;
-    --cool_pink: #C31D6C;
+  --bkg_white: #FEF7F7;
+  --deep_purple: #8039b4;
+  --deep_blue: #4E39B4;
+  --cool_pink: #C31D6C;
 }
 
 .logo {
@@ -21,16 +20,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 0 0 0;
+  padding: 20px 0;
 }
 
 .title {
   font-family: metropolissemi_bold;
   font-size: 40px;
   color: var(--deep_purple);
+  padding-bottom: 10px;
 }
 
-#dash{
+.session_title {
+  padding-top: 40px;
+}
+
+#dash {
   margin: 0 200px;
   color: #8039B4;
   padding-top: 50px;
@@ -40,73 +44,66 @@
 .graphs {
   display: flex;
   align-content: center;
-  /*background-color: red;*/
-  padding: 10px 0px;
-  padding-top: 25px;
-  padding-bottom: 30px;
 }
 
-canvas
-{
-  width: 400px !important;
-}
-.secondDivHolder{
-  display: flex;
-}
-
-button{
+button {
   border: 1.1px solid #8039B4;
   width: 300px;
   border-radius: 10px;
   padding: 10px 0px;
   margin: 0 500px;
-
   background-color: #8039B4;
   color: white;
-
 }
 
-#prev{
-  margin: 0 200px;
-  padding-top: 50px;
-  padding-bottom: 40px;
-  color: #8039B4;
-  font-size: 1.8em;
-
+.avg-rating, .confusion-label, .reviews-label {
+  font-family: metropolisregular;
+  padding: 5px 0;
+  color: var(--deep_purple);
 }
 
-/*
-.flexbox-container {
+.confusion-label {
+  padding-top: 10px;
+}
+
+.stars {
   display: flex;
   flex-direction: row;
-  
-  gap: 12px;
- 
-}
-*/
-.stars{
-  margin: 0 200px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  padding-top: 150px;
-
-  padding-right: 80px;
-
-  
+  /* justify-content: center; */
+  width: 100%;
 }
 
-.star{
+.star {
   padding: 8px;
 }
 
-#review{
-  /* following margin is aligned with stars*/
-  
-  margin: 0 200px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  color: #8039B4;
-  font-size: 1.8em;
+.star:first-of-type {
+  padding-left: 0;
+}
 
+.reviewCard {
+  margin: 10px auto;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--deep_purple);
+  border-radius: 10px;
+  font-family: metropolismedium;
+  color: var(--deep_blue);
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: 0.25s;
+}
+
+.reviewCard:hover {
+  border: 1px solid var(--deep_blue);
+}
+
+.prev-ctr {
+  padding-bottom: 20px;
+}
+
+.hidden {
+  display: none;
 }
