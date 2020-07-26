@@ -569,7 +569,7 @@ async function confusionChartBuilder() {
                     var obj =
                     {
                         "x": (today.getHours() % 12) + ":" + today.getMinutes(),
-                        "y": (confusionAverage) || 0
+                        "y": (confusionAverage) || 50
                     }
                     confusionChartvsTime.push(obj);
 

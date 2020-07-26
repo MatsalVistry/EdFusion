@@ -1,6 +1,11 @@
 @import url('../assets/type/metropolis/metropolis.css');
 
-
+:root {
+    --bkg_white: #FEF7F7;
+    --deep_purple: #8039B4;
+    --deep_blue: #4E39B4;
+    --cool_pink: #C31D6C;
+}
 
 * {
     margin: 0;
@@ -16,4 +21,26 @@ body {
     display: block;
     width: 260px;
     margin: 20px auto;
+}
+
+button {
+    display: block;
+    width: 150px;
+    border-radius: 10px;
+    padding: 8px 4px;
+    margin: 0px 0 10px 0;
+
+    font-size: 16px;
+    outline: none;
+    border-style: none;
+    font-family: metropolisbold, sans-serif;
+    background-color: var(--cool_pink);
+    color: #faf1f1;
+
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+button:hover {
+    background-color: #860e48;   
 }
