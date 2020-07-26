@@ -539,6 +539,7 @@ ipc.on('startClass', async function (event, value) {
                                             questionWindow.destroy();
 
                                         questionWindow = new BrowserWindow({
+                                            height:250,
                                             webPreferences: {
                                                 nodeIntegration: true
                                             }

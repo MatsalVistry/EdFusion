@@ -1,0 +1,51 @@
+button {
+    display: inline;
+    border-radius: 10px;
+    padding: 8px 16px;
+    margin-right: 10px;
+
+    font-size: 16px;
+    outline: none;
+    border-style: none;
+    background-color: #3a3a3a;
+    font-family: metropolisbold, sans-serif;
+    color: #faf1f1;
+    width: 100px;
+
+    transition: 0.25s;
+}
+
+button:hover {
+    background-color: #3f3f3f;
+}
+
+button:first-of-type {
+    background-color: var(--cool_pink);
+}
+
+button:first-of-type:hover {
+    background-color: #d32b7c;
+}
+
+.buttonContainer{
+    margin: 0 auto;
+}
+
+.around{
+    display: flex;
+    justify-content: center;
+}
+
+.mute:hover{
+    background-color: #87144b;
+    cursor: pointer;
+    
+}
+.delete:hover{
+    background-color: #201f1f;
+    cursor: pointer;
+}
+
+body{
+    text-align: center;
+}
