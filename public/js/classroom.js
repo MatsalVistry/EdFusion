@@ -97,6 +97,7 @@ const loadChart = (data, ctx) => {
             }
         }
     });
+    chart.canvas.parentNode.style.height = '128px';
 }
 
 const updateChart = (data) => {

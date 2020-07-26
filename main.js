@@ -468,7 +468,7 @@ ipc.on('startClass', async function (event, value) {
 
             confusionChartvsTime.push({
                 "x": (today.getHours() % 12) + ":" + today.getMinutes() + ":" + today.getSeconds(),
-                "y": 0
+                "y": 50
             })
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
@@ -569,7 +569,7 @@ async function confusionChartBuilder() {
                     var obj =
                     {
                         "x": (today.getHours() % 12) + ":" + today.getMinutes(),
-                        "y": (confusionAverage) || 0
+                        "y": (confusionAverage) || 50
                     }
                     confusionChartvsTime.push(obj);
 

@@ -1,20 +1,4 @@
 @import url('../assets/type/metropolis/metropolis.css');
-:root {
-    --bkg_white: #FEF7F7;
-    --deep_purple: #8039B4;
-    --deep_blue: #4E39B4;
-    --cool_pink: #C31D6C;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background-color: var(--bkg_white);
-}
 
 .main-ctr {
     padding: 0 20%;
@@ -22,15 +6,13 @@ body {
 
 .guide {
     padding: 20px 0;
-    font-family: metropolisregular;
+    font-family: metropolislight;
     font-size: 40px;
     color: var(--deep_purple);
 }
 
 .guide > strong {
-    padding: 20px 0;
     font-family: metropolissemi_bold;
-    font-size: 40px;
     color: var(--deep_blue);
 }
 
