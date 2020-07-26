@@ -1,3 +1,11 @@
+@import url('../assets/type/metropolis/metropolis.css');
+:root {
+    --bkg_white: #FEF7F7;
+    --deep_purple: #8039B4;
+    --deep_blue: #4E39B4;
+    --cool_pink: #C31D6C;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,7 +15,6 @@
 body {
     background-color: #FEF7F7;
     font-family: metropolisbold, sans-serif;
-
 }
 
 .logo {
@@ -18,60 +25,64 @@ body {
 
 .login-ctr {
     width: min-content;
-    margin: 0 auto;
+    margin: 10% auto;
 }
 
-.login-inputs > * {
+.login-inputs>* {
     display: inline-block;
 }
 
-
-h2{
-    color: #4e39b4;
+h2 {
+    color: var(--deep_purple);
     font-size: 40px;
 }
 
-
-label{
-    color: #4e39b4;
-}
-input[type=text]{
-     border-radius: 5px;
-     border: 1.1px solid #490aaa; 
-     height: 50px;
-     width: 300px;
-     font-size: 1.5em;
+label {
+    color:  var(--deep_purple);
+    font-family: metropolisregular;
+    font-size: 1.1em;
+    padding: 15px 0 5px 0;
 }
 
-input[type=password]{
+input {
     border-radius: 5px;
-    border: 1.1px solid #490aaa; 
-    height: 50px;
+    background-color: var(--bkg_white);
+    border: 1.1px solid  var(--deep_purple);
+    padding: 10px 15px;
     width: 300px;
-    font-size: 1.5em;
+    font-family: metropolisregular, sans-serif;
+    font-size: 1.2em;
+    outline: none;
+    color: #1B0A28;
 }
 
-button{
-   
-    border: 1.1px solid #490aaa;
+button {
+    border: 1.1px solid  var(--deep_purple);
     width: 300px;
     border-radius: 10px;
     padding: 10px 0px;
-    font-size: 3vh;
+    margin: 20px 0;
+
+    font-size: 20px;
     outline: none;
     border-style: none;
-
     font-family: metropolisbold, sans-serif;
-    background-color: #4e39b4;
+    background-color:  var(--deep_purple);
     color: #faf1f1;
+
+    cursor: pointer;
+    transition: 0.25s;
 }
 
-.bottom
-{
+button:hover {
+    background-color: #632391;   
+}
+
+.bottom {
     font-size: 9em;
     font-weight: bold;
     text-align: center;
     color: #e2cbe7;
     padding: 10px;
-
+    user-select: none;
 }
