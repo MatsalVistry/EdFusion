@@ -126,13 +126,13 @@ async function getChartData() {
                 var confusionPoint =
                 {
                     "x": counter,
-                    "y": indClass.averageConfusion || 0
+                    "y": indClass.averageConfusion || 50
                 }
                 confusionChart.push(confusionPoint);
                 var ratingPoint =
                 {
                     "x": counter,
-                    "y": indClass.averageRating || 0
+                    "y": indClass.averageRating || 2.5
                 }
                 ratingsChart.push(ratingPoint);
                 var attendancePoint =
@@ -263,7 +263,7 @@ const ratingsBuilder = async () => {
                         totalStudents++;
                     });
                     rateAverage /= totalStudents;
-                    ratings = rateAverage || 0;
+                    ratings = rateAverage || 2.5;
 
                 }).catch(err => console.error(`Failed to find documents F: ${err}`))
                 mongo.close();
@@ -355,7 +355,7 @@ async function updateTeacher() {
             items[0].ratings.forEach((rate) => averageRatings += rate);
             averageRatings /= items[0].ratings.length;
             averageConfusion /= totalStudents;
-            var arr = [averageConfusion || 0, averageRatings || 0, totalStudents];
+            var arr = [averageConfusion || 50, averageRatings || 2.5, totalStudents||0];
 
 
             const collection2 = mongo.db("edfusion").collection("teachers");
@@ -468,7 +468,7 @@ ipc.on('startClass', async function (event, value) {
 
             confusionChartvsTime.push({
                 "x": (today.getHours() % 12) + ":" + today.getMinutes() + ":" + today.getSeconds(),
-                "y": 0
+                "y": 50
             })
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
