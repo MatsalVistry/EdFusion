@@ -12,10 +12,9 @@ const ipc = electron.ipcMain;
 const MongoClient = require('mongodb').MongoClient;
 var teacherID = null;
 var questions = new Set();
-var classCode = null;
+var classCode = 0;
 const uri = "mongodb+srv://edfusion:hackathon@cluster0.zetfo.mongodb.net/edfusion?retryWrites=true&w=majority";
 var addStatus = true;
-var teacherID = null;
 var inSession = null;
 var ratings = null;
 var ratingsSession = null;
@@ -49,11 +48,10 @@ app.on('ready', async function () {
     mainWindow.on('close', async (e) => {
         e.preventDefault();
         MongoClient.connect(uri).then(async function (mongo) {
-            console.log("Connected: CLOSE")
             const collection = mongo.db("edfusion").collection("classrooms");
-            const query = { code: classCode };
+            const query = { "code": classCode };
             const collection2 = mongo.db("edfusion").collection("teachers");
-            const query2 = { code: classCode };
+            const query2 = { "code": classCode };
 
             if (ratingsSession) {
                 ratingsSession = false;
@@ -71,7 +69,6 @@ app.on('ready', async function () {
                 }).catch((err) => console.error(`Failed to find documents B: ${err}`))
             }
             mongo.close()
-            console.log("Closed: CLOSE");
         }).catch(() => {
             app.exit(0)
         }).finally(() => {
@@ -83,15 +80,17 @@ app.on('ready', async function () {
 const finalTeacherUpdate = async (collection, query, classID) => {
     return await collection.find(query).toArray().then(items => {
         var items2 = items;
-        items2[0].code = null;
+        if(items2)
+        {
+        items2[0].code = 0;
         items2[0].statistics.forEach((stat) => {
             if ((stat && stat.classroomID && classID) && stat.classroomID.toString() == classID.toString()) {
                 stat.averageRating = ratings;
             }
         });
+    }
         return items2[0];
     }).catch(err => console.error(`Failed to find documents C: ${err}`))
-
 }
 
 ipc.on('login_data', async function (event, value) {
@@ -121,9 +120,8 @@ ipc.on('login_data', async function (event, value) {
 
 async function getChartData() {
     return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log("Connected: getChartData")
         const collection = mongo.db("edfusion").collection("teachers");
-        const query = { _id: teacherID };
+        const query = { "_id": teacherID };
         return await collection.find(query).toArray().then(items => {
             var items2 = items;
             var confusionChart = [];
@@ -152,7 +150,6 @@ async function getChartData() {
                 attendanceChart.push(attendancePoint);
             });
             mongo.close()
-            console.log("Closed: getChartData")
             return [confusionChart, ratingsChart, attendanceChart];
         }).catch(err => console.error(`Failed to find documents D: ${err}`))
     }).catch(err => console.log(err))
@@ -163,9 +160,8 @@ ipc.on('getRoomCode', async function (event, value) {
 
     if (alreadySessionMade) {
         await MongoClient.connect(uri).then(async function (mongo) {
-            console.log("Connected: getRoomCode");
             const collection = mongo.db("edfusion").collection("classrooms");
-            const query = { code: classCode };
+            const query = { "code": classCode };
             const collection2 = mongo.db("edfusion").collection("teachers");
             const query2 = { code: classCode };
 
@@ -180,7 +176,6 @@ ipc.on('getRoomCode', async function (event, value) {
                     doc
                 ).then(() => { collection.deleteOne(query).catch((err) => console.log(err)) })
             mongo.close()
-            console.log("Closed: getRoomCode")
         }).catch((err) => console.log(err))
     }
 
@@ -202,7 +197,6 @@ ipc.on('endClass', async function (event, value) {
     event.preventDefault();
     changeStreamMongo.close();
     changeStream.close();
-    console.log("mongostreamchange closed");
     inSession = false;
     reviewSet = new Set();
     await updateClassroom();
@@ -230,10 +224,9 @@ const reviewsBuilder = async () => {
     var timeout = 5000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
-            console.log("Connected: reviewsBuilder");
             if (ratingsSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
-                const query = { code: classCode };
+                const query = { "code": classCode };
                 await collection.find(query).toArray().then(items => {
                     items[0].reviews.forEach((review) => {
                         if (!reviewSet.has(review)) {
@@ -245,7 +238,6 @@ const reviewsBuilder = async () => {
                 }).catch(err => console.error(`Failed to find documents E: ${err}`))
             }
             mongo.close()
-            console.log("Closed: reviewsBuilder");
         });
 
         if (ratingsSession) {
@@ -260,10 +252,9 @@ const ratingsBuilder = async () => {
     var timeout = 5000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
-            console.log("Connected: ratingsBuilder");
             if (ratingsSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
-                const query = { code: classCode };
+                const query = { "code": classCode };
                 await collection.find(query).toArray().then(items => {
                     var rateAverage = 0;
                     var totalStudents = 0;
@@ -279,7 +270,6 @@ const ratingsBuilder = async () => {
             }
             else
                 mongo.close();
-            console.log("Closed: ratingsBuilder");
         });
 
         if (ratingsSession) {
@@ -296,11 +286,10 @@ ipc.on('mutePerson', async function (event, question) {
 
 async function mutePerson(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected: mutePerson');
 
         const collection = mongo.db("edfusion").collection("classrooms");
 
-        const query = { code: classCode };
+        const query = { "code": classCode };
         var doc = await muteHelper(collection, query, question);
 
         await collection.findOneAndReplace(
@@ -308,7 +297,6 @@ async function mutePerson(question) {
             doc
         ).catch((err) => console.log(err))
         mongo.close()
-        console.log("Closed: mutePerson");
     }).catch(function (err) { })
 }
 
@@ -331,26 +319,23 @@ async function muteHelper(collection, query, question) {
 
 async function updateClassroom() {
     await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected: updateClassroom');
 
         const collection = mongo.db("edfusion").collection("classrooms");
 
-        const query = { code: classCode };
+        const query = { "code": classCode };
         const update = { $set: { "finished": true } }
         await collection.updateOne(query, update).catch(err => {
             console.log(err);
         })
         mongo.close()
-        console.log("Closed: updateClassroom");
     })
 }
 
 async function updateTeacher() {
     await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected: updateTeacher');
         const collection = mongo.db("edfusion").collection("classrooms");
 
-        const query = { code: classCode };
+        const query = { "code": classCode };
         var data = null;
         await collection.find(query).toArray().then(async (items) => {
             var totalStudents = 0;
@@ -376,7 +361,6 @@ async function updateTeacher() {
                 doc
             ).catch((err) => console.log(err))
             mongo.close()
-            console.log("Closed: updateTeacher");
         }).catch(err => console.error(`Failed to find documents H: ${err}`))
     }).catch(function (err) { })
 }
@@ -416,10 +400,9 @@ ipc.on('deleteQuestion', async function (event, question) {
 
 async function deleteQuestion(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
-        console.log('Connected: deleteQuestion');
         const collection = mongo.db("edfusion").collection("classrooms");
 
-        const query = { code: classCode };
+        const query = { "code": classCode };
         var doc = await getUpdatedDocument(collection, query, question);
 
         await collection.findOneAndReplace(
@@ -427,7 +410,6 @@ async function deleteQuestion(question) {
             doc
         ).catch((err) => console.log(err))
         mongo.close()
-        console.log("Closed: deleteQuestion");
     }).catch(function (err) { })
 }
 
@@ -467,7 +449,6 @@ ipc.on('startClass', async function (event, value) {
     })).then(() => {
         MongoClient.connect(uri, { poolSize: 1 }).then(async function (mongo) {
             alreadySessionMade = true;
-            console.log('Connected: startClass (changestream)');
             inSession = true;
             addStatus = true;
             ratingsSession = false;
@@ -482,7 +463,7 @@ ipc.on('startClass', async function (event, value) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
-            const query = {code: classCode};
+            const query = {"code": classCode};
             var newDoc = await unmuteAll(collection,query)
             await collection.findOneAndReplace(
                 query,
@@ -493,7 +474,7 @@ ipc.on('startClass', async function (event, value) {
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
-                    const query = { _id: change.documentKey._id }
+                    const query = {"_id": change.documentKey._id }
                     collection.findOne(query).then((res) => {
                         if (res && (res.code == classCode)) {
                             let questionsArr = null;
@@ -561,10 +542,9 @@ async function confusionChartBuilder() {
     var timeout = 5000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
-            console.log("Connected: confusionChartBuilder");
             if (inSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
-                const query = { code: classCode };
+                const query = { "code": classCode };
                 await collection.find(query).toArray().then(items => {
                     var confusionAverage = 0;
                     var totalStudents = 0;
@@ -585,7 +565,6 @@ async function confusionChartBuilder() {
                 }).catch(err => console.error(`Failed to find documents J: ${err}`))
             }
             mongo.close()
-            console.log("Closed: confusionChartBuilder");
         });
         if (inSession) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
@@ -598,11 +577,10 @@ async function confusionChartBuilder() {
 async function verifyTeacher(value) {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
-            console.log('Connected: verifyTeacher');
 
             const collection = mongo.db("edfusion").collection("teachers");
 
-            const query = { email: value[0], password: value[1] };
+            const query = { "email": value[0], "password": value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
                 if (items.length > 0) 
@@ -613,7 +591,6 @@ async function verifyTeacher(value) {
                 else
                     data = false;
                 mongo.close()
-                console.log("Closed: verifyTeacher");
                 return data;
 
             }).catch(err => console.error(`Failed to find documents K: ${err}`))
@@ -623,7 +600,6 @@ async function verifyTeacher(value) {
 async function getRoomCode() {
     return await MongoClient.connect(uri)
         .then(async function (mongo) {
-            console.log('Connected: getRoomCode');
             const collection = mongo.db("edfusion").collection("classrooms");
             const query = {};
             return await collection.find(query).toArray().then(async (items) => {
@@ -660,7 +636,6 @@ async function getRoomCode() {
                 studentsAmount = 0;
                 studentsAmountBuilder();
                 mongo.close()
-                console.log("Closed: getRoomCode");
                 return num;
             }).catch(err => console.error(`Failed to find documents L: ${err}`))
         }).catch(function (err) { })
@@ -677,16 +652,14 @@ const studentsAmountBuilder = async () => {
     var timeout = 3000;
     setTimeout(async () => {
         await MongoClient.connect(uri).then(async function (mongo) {
-            console.log("Connected: studentsAmountBuilder");
             if (codeEnterSession) {
                 const collection = mongo.db("edfusion").collection("classrooms");
-                const query = { code: classCode };
+                const query = { "code": classCode };
                 await collection.find(query).toArray().then(items => {
                     studentsAmount = Object.keys(items[0].students).length;
                 });
             }
             mongo.close()
-            console.log("Closed: studentsAmountBuilder");
         });
 
         if (codeEnterSession) {
