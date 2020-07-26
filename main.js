@@ -435,6 +435,19 @@ async function getUpdatedDocument(collection, query, question) {
     }).catch(err => console.error(`Failed to find documents I: ${err}`))
 }
 
+const unmuteAll =async(collection,query)=>
+{
+    return await collection.find(query).toArray().then(items => 
+    {
+        items2 = items;
+        items2[0].students.forEach((student)=>
+        {
+            student.muted = false;
+        })
+        return items2[0];
+    });
+}
+
 ipc.on('startClass', async function (event, value) {
     codeEnterSession = false;
     event.preventDefault();
@@ -443,7 +456,7 @@ ipc.on('startClass', async function (event, value) {
         protocol: 'file:',
         slashes: true,
     })).then(() => {
-        MongoClient.connect(uri, { poolSize: 1 }).then(function (mongo) {
+        MongoClient.connect(uri, { poolSize: 1 }).then(async function (mongo) {
             alreadySessionMade = true;
             console.log('Connected: startClass (changestream)');
             inSession = true;
@@ -460,6 +473,12 @@ ipc.on('startClass', async function (event, value) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
+            const query = {code: classCode};
+            var newDoc = await unmuteAll(collection,query)
+            await collection.findOneAndReplace(
+                query,
+                newDoc
+            )
             changeStreamMongo = mongo;
             changeStream = collection.watch();
 
@@ -503,10 +522,10 @@ ipc.on('startClass', async function (event, value) {
                                             slashes: true,
                                         })).then(() => {
                                             questionWindow.webContents.send('newQuestion', question);
-                                            questionWindow.on('close'),async(e)=>
+                                            questionWindow.on('close',async(e)=>
                                             {
                                                 currentQuestionOnWindow = null;
-                                            }
+                                            })
                                         })
                                     })
                                 }
@@ -577,12 +596,13 @@ async function verifyTeacher(value) {
             const query = { email: value[0], password: value[1] };
             var data = null;
             return await collection.find(query).toArray().then(items => {
-                if (items.length > 0) {
+                if (items.length > 0) 
+                {
                     data = true;
+                    teacherID = items[0]._id;
                 }
                 else
                     data = false;
-                teacherID = items[0]._id;
                 mongo.close()
                 console.log("Closed: verifyTeacher");
                 return data;
