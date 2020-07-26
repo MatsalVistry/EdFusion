@@ -8,29 +8,40 @@ $(document).ready(() => {
         $("#create-classroom").prop('disabled', true)
         ipc.send('getRoomCode')
     })
-    pushReview("you suck lol")
 })
 
 
-const loadChart = (data, ctx) => {
+const loadChart = (data, ctx,xAxisLabel,yAxisLabel, title) => {
 
     var data = {
         labels: data.map(point => point.x),
         datasets: [{
-            label: "Car Speed",
+            label: title,
             data: data.map(point => point.y)
         }]
     };
 
-    var chart = new Chart(ctx, {
+    new Chart(ctx, {
         type: 'line',
         data: data,
         options: {
-            title: {
-                display: true,
-                text: 'World population per region (in millions)'
-            }
-        }
+            responsive:true,
+            maintainAspectRatio: false,
+            scales: {
+                yAxes: [{
+                  scaleLabel: {
+                    display: true,
+                    labelString: yAxisLabel
+                  }
+                }],
+                xAxes: [{
+                    scaleLabel: {
+                      display: true,
+                      labelString: xAxisLabel
+                    }
+                  }]
+              }     
+        }, 
     });
 }
 
@@ -52,9 +63,9 @@ ipc.on('chartData', (event, data) => {
     const ratingCTX = $('#ratings');
     const attendanceCTX = $('#attendance');
 
-    loadChart(data[0], confusionCTX)
-    loadChart(data[1], ratingCTX)
-    loadChart(data[2], attendanceCTX)
+    loadChart(data[0], confusionCTX,"Sessions","Confusion","Confusion vs Sessions")
+    loadChart(data[1], ratingCTX,"Sessions","Ratings","Ratings vs Sessions")
+    loadChart(data[2], attendanceCTX,"Sessions","Attendance","Attendance vs Sessions")
 
 })
 
@@ -65,7 +76,7 @@ ipc.on('loadPreviousSessionGraph', (event, data) => {
 })
 
 ipc.on('updatedRatings', (event, data) => {
-    let rating = math.round(data);
+    let rating = Math.round(data);
     colorStars(rating)
 })
 
