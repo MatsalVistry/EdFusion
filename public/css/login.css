@@ -6,6 +6,8 @@
 
 body {
     background-color: #FEF7F7;
+    font-family: metropolisbold, sans-serif;
+
 }
 
 .logo {
@@ -21,4 +23,55 @@ body {
 
 .login-inputs > * {
     display: inline-block;
+}
+
+
+h2{
+    color: #4e39b4;
+    font-size: 40px;
+}
+
+
+label{
+    color: #4e39b4;
+}
+input[type=text]{
+     border-radius: 5px;
+     border: 1.1px solid #490aaa; 
+     height: 50px;
+     width: 300px;
+     font-size: 1.5em;
+}
+
+input[type=password]{
+    border-radius: 5px;
+    border: 1.1px solid #490aaa; 
+    height: 50px;
+    width: 300px;
+    font-size: 1.5em;
+}
+
+button{
+   
+    border: 1.1px solid #490aaa;
+    width: 300px;
+    border-radius: 10px;
+    padding: 10px 0px;
+    font-size: 3vh;
+    outline: none;
+    border-style: none;
+
+    font-family: metropolisbold, sans-serif;
+    background-color: #4e39b4;
+    color: #faf1f1;
+}
+
+.bottom
+{
+    font-size: 9em;
+    font-weight: bold;
+    text-align: center;
+    color: #e2cbe7;
+    padding: 10px;
+
 }
