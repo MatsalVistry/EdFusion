@@ -22,6 +22,8 @@ var ratingsSession = null;
 var confusionChartvsTime = [];
 var reviewSet = new Set();
 var alreadySessionMade = false;
+var changeStreamMongo = null;
+var changeStream = null;
 
 
 app.on('ready', async function () {
@@ -187,6 +189,9 @@ ipc.on('getRoomCode', async function (event, value) {
 
 ipc.on('endClass', async function (event, value) {
     event.preventDefault();
+    changeStreamMongo.close();
+    changeStream.close();
+    console.log("mongostreamchange closed");
     inSession = false;
     reviewSet = new Set();
     await updateClassroom();
@@ -378,7 +383,6 @@ async function getUpdatedTeacher(collection, query, arr, cid) {
             "classroomID": cid
         }
         items2[0].statistics.push(obj);
-        mongo.close()
         return items2[0];
     }).catch(err => console.error(`Failed to find documents: 6${err}`))
 }
@@ -448,7 +452,8 @@ ipc.on('startClass', async function (event, value) {
             mainWindow.webContents.send('updatedSessionChart', confusionChartvsTime);
             confusionChartBuilder();
             const collection = mongo.db("edfusion").collection("classrooms");
-            var changeStream = collection.watch();
+            changeStreamMongo = mongo;
+            changeStream = collection.watch();
 
             changeStream.on('change', function (change) {
                 if (addStatus) {
