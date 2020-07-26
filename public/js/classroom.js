@@ -14,7 +14,11 @@ $(document).ready(() => {
 ipc.on('newQuestion', (event, question) => {
     console.log(question)
     pushQuestion(question)
-}); 
+});
+
+ipc.on('removeQuestion', (event, question) => {
+    
+})
 
 const pushQuestion = (question) => {
     let questions = document.querySelector(".questions");
