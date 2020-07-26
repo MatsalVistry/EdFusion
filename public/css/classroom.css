@@ -1,7 +1,7 @@
 @import url('../assets/type/metropolis/metropolis.css');
 :root {
     --bkg_white: #FEF7F7;
-    --deep_purple: #8039B4;
+    --deep_purple: #8039b4;
     --deep_blue: #4E39B4;
     --cool_pink: #C31D6C;
 }
@@ -55,6 +55,9 @@ body {
     border: 1px solid var(--deep_purple);
     border-radius: 10px;
 
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .questionCard > p {
@@ -63,19 +66,35 @@ body {
     font-size: 1.2em;
 }
 
-.questionCard > button {
+.questionCard > div {
+    float: right;
+}
+
+.questionCard > div > button {
     display: inline;
     border-radius: 10px;
-    padding: 8px 4px;
-    margin: 0px 0 10px 0;
+    padding: 8px 16px;
+    margin-right: 10px;
 
     font-size: 16px;
     outline: none;
     border-style: none;
+    background-color: #3a3a3a;
     font-family: metropolisbold, sans-serif;
-    background-color: var(--cool_pink);
     color: #faf1f1;
 
     cursor: pointer;
     transition: 0.25s;
+}
+
+.questionCard > div > button:hover {
+    background-color: #3f3f3f;
+}
+
+.questionCard > div > button:first-of-type {
+    background-color: var(--cool_pink);
+}
+
+.questionCard > div > button:first-of-type:hover {
+    background-color: #d32b7c;
 }
