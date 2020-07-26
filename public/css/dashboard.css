@@ -9,5 +9,14 @@ body {
 }
 
 .graphs {
-  width: 400px;
+  display: flex;
+  align-content: center;
+}
+
+canvas
+{
+  width: 400px !important;
+}
+.secondDivHolder{
+  display: flex;
 }
