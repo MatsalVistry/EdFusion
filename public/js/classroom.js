@@ -6,7 +6,7 @@ let chart;
 
 $(document).ready(() => {
 
-    pushQuestion("hey gamers")
+    // pushQuestion("hey gamers")
 
     $("#end-class").click((e) => {
         e.preventDefault()
@@ -58,9 +58,12 @@ const pushQuestion = (question) => {
         ipc.send('mutePerson', question)
     }
 
+    let rightDiv = document.createElement("div")
+    rightDiv.appendChild(qDelButton)
+    rightDiv.appendChild(qMuteButton)
+
     qDiv.appendChild(qText)
-    qDiv.appendChild(qDelButton)
-    qDiv.appendChild(qMuteButton)
+    qDiv.appendChild(rightDiv)
     questions.prepend(qDiv)
 }
 
