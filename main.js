@@ -289,7 +289,42 @@ const ratingsBuilder = async () => {
 ipc.on('mutePerson', async function (event, question) {
     event.preventDefault();
     await mutePerson(question).then(async () => { });
+    var arr = await  mutePersonQuestions(question);
+    console.log(arr);
+    mainWindow.webContents.send('mutedArray', arr);
+
 });
+
+async function mutePersonQuestions(q)
+{
+    return await MongoClient.connect(uri).then(async function (mongo) 
+    {
+        const collection = mongo.db("edfusion").collection("classrooms");
+
+        const query = { "code": classCode };
+        var questionsArr = []
+        await collection.find(query).toArray().then(items => 
+        {
+            var studentID = null;
+            items[0].questions.forEach((quest)=>
+            {
+                if(quest.question.toString()==q.toString())
+                {
+                    studentID=quest.student_id;
+                }
+            })
+            items[0].questions.forEach((quest)=>
+            {
+                if(quest.student_id.toString()==studentID.toString())
+                {
+                    questionsArr.push(quest.question);
+                }
+            })
+        }).catch(err => console.error(`Failed to find documents G: ${err}`))
+        mongo.close()
+        return questionsArr;
+    }).catch((err)=>{console.log(err)});
+}
 
 async function mutePerson(question) {
     return await MongoClient.connect(uri).then(async function (mongo) {
