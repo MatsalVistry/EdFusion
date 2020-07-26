@@ -6,7 +6,7 @@ let chart;
 
 $(document).ready(() => {
 
-    // pushQuestion("hey gamers")
+    pushQuestion("hey gamers")
 
     $("#end-class").click((e) => {
         e.preventDefault()
@@ -54,8 +54,28 @@ const pushQuestion = (question) => {
 
     let qMuteButton = document.createElement('button')
     qMuteButton.innerHTML = "Mute"
+
+    qMuteButton.classList.add("false")
+
     qMuteButton.onclick = () => {
         ipc.send('mutePerson', question)
+
+        muted = qMuteButton.classList[0] == "true"
+
+
+        if(muted) {
+            qMuteButton.innerHTML = "Mute"
+            
+            qMuteButton.classList.remove("true")
+            qMuteButton.classList.add("false")
+
+        } else {
+            qMuteButton.innerHTML = "Unmute"
+
+            qMuteButton.classList.remove("false")
+            qMuteButton.classList.add("true")
+        }
+
     }
 
     let rightDiv = document.createElement("div")
@@ -87,7 +107,6 @@ const loadChart = (data, ctx) => {
     var data = {
         labels: data.map(point => point.x),
         datasets: [{
-            label: "Average Confusion Rating",
             data: data.map(point => point.y)
         }]
     };
@@ -96,6 +115,9 @@ const loadChart = (data, ctx) => {
         type: 'line',
         data: data,
         options: {
+            legend: {
+                display: false
+            },
             title: {
                 display: true,
                 text: 'Live Confusion Graph'
@@ -111,7 +133,9 @@ const updateChart = (data) => {
 
     chart.data.labels.push(latestX);
     chart.data.datasets.forEach((dataset) => {
-        dataset.data.push(latestY);
+        dataset.data.push(latestY)
+        dataset.borderColor = "#8039B4"
+        dataset.backgroundColor = "rgba(128, 57, 180,0.45)"
     });
     chart.update();
 }

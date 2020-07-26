@@ -10,3 +10,7 @@ $(document).ready(() => {
         ipc.send('login_data',[username,password])
     })
 })
+
+ipc.on('login_error', (event, data) => {
+    document.getElementById("error").innerHTML = data;
+});

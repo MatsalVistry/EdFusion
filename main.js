@@ -106,6 +106,14 @@ ipc.on('login_data', async function (event, value) {
                     mainWindow.webContents.send('chartData', data);
                 })
             });
+        } else {
+            mainWindow.loadURL(url.format({
+                pathname: '/public/html/login.html',
+                protocol: 'file:',
+                slashes: true,
+            })).then(() => {
+                mainWindow.webContents.send('login_error', "Incorrect credentials.");              
+            });
         }
     });
 });
