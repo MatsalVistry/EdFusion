@@ -390,6 +390,13 @@ async function getUpdatedTeacher(collection, query, arr, cid) {
 
 
 ipc.on('deleteQuestion', async function (event, question) {
+    if(currentQuestionOnWindow && (currentQuestionOnWindow==question))
+    {
+        mainWindow.webContents.send('removeQuestion', question);
+        currentQuestionOnWindow = null;
+        questionWindow.destroy();
+        questionWindow = null;
+    }
     addStatus = false;
     questions.delete(question);
     event.preventDefault();
@@ -471,13 +478,16 @@ ipc.on('startClass', async function (event, value) {
                                 if (!questions.has(question)) {
                                     questions.add(question)
                                     mainWindow.webContents.send('newQuestion', question);
+                                    
                                     var n = new Notification({
                                         title: "New Question!",
                                         body: question
                                     })
                                     n.show()
-                                    n.on('click', async (e) => {
-                                        currentQuestionOnWindow=question;
+                                    
+                                    n.on('click', async (e) => 
+                                    {
+                                        currentQuestionOnWindow = question;
                                         if(questionWindow)
                                             questionWindow.destroy();
 
@@ -493,6 +503,10 @@ ipc.on('startClass', async function (event, value) {
                                             slashes: true,
                                         })).then(() => {
                                             questionWindow.webContents.send('newQuestion', question);
+                                            questionWindow.on('close'),async(e)=>
+                                            {
+                                                currentQuestionOnWindow = null;
+                                            }
                                         })
                                     })
                                 }
@@ -509,9 +523,10 @@ ipc.on('startClass', async function (event, value) {
 
 ipc.on('deleteQuestionWindow', async function (event, question) {
     mainWindow.webContents.send('removeQuestion', question);
-    questionWindow.destroy();
     currentQuestionOnWindow = null;
-    questionWindow=null;
+    questionWindow.destroy();
+    questionWindow = null;
+   
 });
 
 async function confusionChartBuilder() {
