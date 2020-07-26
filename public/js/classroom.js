@@ -17,7 +17,18 @@ ipc.on('newQuestion', (event, question) => {
 });
 
 ipc.on('removeQuestion', (event, question) => {
-    
+    console.log("Remove:" + question)
+    removeQuestion(question)
+})
+
+ipc.on('updatedSessionChart', (event, data) => {
+    const confusionCTX = $('#session_confusion')
+
+    if (data.length > 1) {
+        updateChart(data)
+    } else {
+        loadChart(data, confusionCTX)
+    }
 })
 
 const pushQuestion = (question) => {
@@ -51,12 +62,28 @@ const pushQuestion = (question) => {
     questions.append(qDiv)
 }
 
+const removeQuestion = (question) => {
+    console.log("remove")
+
+    let index;
+    const questions = document.querySelectorAll(".questionCard > p");
+    for (var i = 0; i < questions.length; i++) {
+        if(questions[i].innerHTML == question) {
+            index = i
+        }
+    }
+
+    const divs = document.querySelectorAll(".questionCard");
+    divs[index].remove()
+
+}
+
 const loadChart = (data, ctx) => {
     var data = {
         labels: data.map(point => point.x),
         datasets: [{
-          label: "Average Confusion Rating",
-          data: data.map(point => point.y)
+            label: "Average Confusion Rating",
+            data: data.map(point => point.y)
         }]
     };
 
@@ -73,8 +100,8 @@ const loadChart = (data, ctx) => {
 }
 
 const updateChart = (data) => {
-    let latestX = data[data.length-1].x
-    let latestY = data[data.length-1].y
+    let latestX = data[data.length - 1].x
+    let latestY = data[data.length - 1].y
 
     chart.data.labels.push(latestX);
     chart.data.datasets.forEach((dataset) => {
@@ -82,13 +109,3 @@ const updateChart = (data) => {
     });
     chart.update();
 }
-
-ipc.on('updatedSessionChart', (event, data) => {
-    const confusionCTX = $('#session_confusion')
-
-    if(data.length > 1) {
-        updateChart(data)
-    } else {
-        loadChart(data, confusionCTX) 
-    }
-})

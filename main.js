@@ -503,7 +503,7 @@ ipc.on('startClass', async function (event, value) {
 });
 
 ipc.on('deleteQuestionWindow', async function (event, question) {
-    questionWindow.webContents.send('removeQuestion', question);
+    mainWindow.webContents.send('removeQuestion', question);
     questionWindow.destroy();
 });
 
